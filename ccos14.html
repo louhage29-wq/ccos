@@ -1,0 +1,3699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CodeCanvas OS</title>
+<style>
+:root{
+  --accent:#6af5c8;
+  --panel:#101b2b;
+  --panel2:#17253a;
+  --window-bg:rgba(16,27,43,.95);
+  --text:#eef7ff;
+  --muted:#91a5bb;
+  --danger:#ff6175;
+  --taskbar:50px;
+  --ui-blur:18px;
+  --wallpaper:
+    radial-gradient(circle at 18% 15%,#174c62 0,transparent 34%),
+    radial-gradient(circle at 88% 80%,#283d7d 0,transparent 39%),
+    linear-gradient(135deg,#07101c,#111d35 58%,#07101c);
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:#03070d;
+  color:var(--text);
+  font:14px Inter,Segoe UI,Arial,sans-serif;
+}
+body.light{
+  --panel:#f7faff;
+  --panel2:#e4edf7;
+  --text:#142033;
+  --muted:#617188;
+}
+body.contrast{
+  --panel:#050505;
+  --panel2:#111;
+  --text:#fff;
+  --muted:#ddd;
+  --accent:#fff500;
+  --wallpaper:#000;
+}
+body.reduce-motion *{
+  animation:none!important;
+  transition:none!important;
+}
+body.no-blur *{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+body.square-corners button,
+body.square-corners input,
+body.square-corners textarea,
+body.square-corners select,
+body.square-corners .card,
+body.square-corners .widget,
+body.square-corners .window,
+body.square-corners .window iframe,
+body.square-corners #startMenu,
+body.square-corners #contextMenu,
+body.square-corners .toast,
+body.square-corners .file-row,
+body.square-corners .output{
+  border-radius:0!important;
+}
+button,input,textarea,select{font:inherit}
+button{
+  padding:8px 11px;
+  color:var(--text);
+  background:#ffffff0d;
+  border:1px solid #ffffff20;
+  border-radius:8px;
+  cursor:pointer;
+}
+button:hover{background:#ffffff1c}
+button.primary{
+  color:#04120e;
+  background:var(--accent);
+  border-color:transparent;
+  font-weight:700;
+}
+button.danger{
+  color:#ff9eaa;
+  background:#ff617522;
+  border-color:#ff617555;
+}
+input,textarea,select{
+  width:100%;
+  padding:9px;
+  color:var(--text);
+  background:#0003;
+  border:1px solid #ffffff20;
+  border-radius:8px;
+  outline:none;
+}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:100px}
+h1,h2,h3,p{margin-top:0}
+img{max-width:100%}
+.hidden{display:none!important}
+.row{display:flex;align-items:center;gap:8px}
+.wrap{flex-wrap:wrap}
+.grow{flex:1}
+.grid{display:grid;gap:10px}
+.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card{
+  padding:12px;
+  background:#ffffff09;
+  border:1px solid #ffffff14;
+  border-radius:10px;
+}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.setting-value{
+  display:inline-block;
+  min-width:42px;
+  text-align:right;
+  color:var(--accent);
+}
+.output{
+  min-height:100px;
+  padding:10px;
+  overflow:auto;
+  color:#b0ffda;
+  background:#030812;
+  border:1px solid #ffffff16;
+  border-radius:8px;
+}
+.app-fill{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+.file-list{display:grid;gap:6px}
+.file-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:9px;
+  background:#ffffff09;
+  border-radius:8px;
+}
+.app-icon-render{
+  width:32px;
+  height:32px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:none;
+  font-size:27px;
+}
+.app-icon-render img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  border-radius:7px;
+}
+#desktop{
+  position:fixed;
+  inset:0 0 var(--taskbar);
+  overflow:hidden;
+  user-select:none;
+  background:var(--wallpaper);
+  background-size:cover;
+}
+#desktop:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(120deg,#ffffff05,transparent 35%,#ffffff03);
+}
+#desktopIcons{
+  position:absolute;
+  z-index:2;
+  inset:0;
+}
+.desktop-icon{
+  position:absolute;
+  width:84px;
+  min-height:82px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:5px;
+  padding:5px;
+  text-align:center;
+  border:1px solid transparent;
+  border-radius:8px;
+  text-shadow:0 2px 5px #000;
+  cursor:default;
+  touch-action:none;
+}
+.desktop-icon:hover,.desktop-icon.selected{
+  background:#ffffff17;
+  border-color:#ffffff2a;
+}
+.desktop-icon .app-icon-render{
+  width:38px;
+  height:38px;
+  font-size:30px;
+}
+.icon-name{
+  max-width:80px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:12px;
+}
+#selectionBox{
+  position:absolute;
+  z-index:1;
+  display:none;
+  background:#6af5c822;
+  border:1px solid var(--accent);
+}
+#widgets{
+  position:absolute;
+  z-index:3;
+  top:14px;
+  right:14px;
+  width:230px;
+  display:grid;
+  gap:9px;
+}
+.widget{
+  padding:12px;
+  background:#0a1525dd;
+  border:1px solid #ffffff18;
+  border-radius:12px;
+  box-shadow:0 10px 30px #0005;
+  backdrop-filter:blur(var(--ui-blur));
+  -webkit-backdrop-filter:blur(var(--ui-blur));
+}
+body.light .widget{background:#f7fbffdd}
+.widget-time{font-size:30px;font-weight:700}
+.sticky textarea{
+  min-height:82px;
+  color:#332b00;
+  background:#ffe989;
+  border:0;
+}
+#taskbar{
+  position:fixed;
+  z-index:9000;
+  left:0;
+  right:0;
+  bottom:0;
+  height:var(--taskbar);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 8px;
+  background:#091321ed;
+  border-top:1px solid #ffffff18;
+  backdrop-filter:blur(var(--ui-blur));
+  -webkit-backdrop-filter:blur(var(--ui-blur));
+}
+body.light #taskbar{background:#f4f8fced}
+#startButton{width:40px;padding:5px;font-size:21px}
+#taskButtons{
+  display:flex;
+  flex:1;
+  gap:5px;
+  overflow:auto;
+}
+.task-button{
+  max-width:170px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.task-button.active{
+  background:#ffffff20;
+  border-bottom:2px solid var(--accent);
+}
+#tray{display:flex;align-items:center;gap:7px}
+#clock{min-width:82px;text-align:right;font-size:12px}
+#startMenu{
+  position:fixed;
+  z-index:9500;
+  left:8px;
+  bottom:calc(var(--taskbar) + 6px);
+  width:410px;
+  max-height:74vh;
+  padding:13px;
+  overflow:auto;
+  background:#0a1525f2;
+  border:1px solid #ffffff20;
+  border-radius:15px;
+  box-shadow:0 20px 65px #000b;
+  backdrop-filter:blur(var(--ui-blur));
+  -webkit-backdrop-filter:blur(var(--ui-blur));
+}
+body.light #startMenu{background:#f7fafff2}
+#startApps{grid-template-columns:repeat(4,minmax(0,1fr))}
+.start-app{
+  min-height:78px;
+  padding:8px 3px;
+  text-align:center;
+}
+.start-app .app-icon-render{
+  width:34px;
+  height:34px;
+  margin:0 auto 4px;
+}
+.start-app small{font-size:11px}
+#searchResults{display:grid;gap:5px;margin-top:8px}
+.search-result{text-align:left}
+.start-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:12px;
+}
+.window{
+  position:absolute;
+  z-index:20;
+  min-width:290px;
+  min-height:190px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  resize:both;
+  background:var(--window-bg);
+  border:1px solid #ffffff24;
+  border-radius:12px;
+  box-shadow:0 20px 60px #0009;
+  user-select:text;
+  backdrop-filter:blur(var(--ui-blur));
+  -webkit-backdrop-filter:blur(var(--ui-blur));
+}
+.window.focused{border-color:#ffffff55}
+.window.pinned{border-color:var(--accent)}
+.window.minimized{display:none}
+.window.maximized{
+  top:0!important;
+  left:0!important;
+  width:100%!important;
+  height:100%!important;
+  border-radius:0;
+  resize:none;
+}
+.titlebar{
+  height:40px;
+  flex:none;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 7px 0 10px;
+  background:#ffffff09;
+  border-bottom:1px solid #ffffff14;
+  cursor:move;
+  user-select:none;
+}
+.titlebar .app-icon-render{
+  width:24px;
+  height:24px;
+  font-size:19px;
+}
+.window-title{
+  flex:1;
+  font-weight:650;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.window-controls{display:flex;gap:2px}
+.window-controls button{
+  padding:4px 8px;
+  background:transparent;
+  border:0;
+}
+.window-controls .close:hover{
+  color:#fff;
+  background:var(--danger);
+}
+.window-body{
+  position:relative;
+  flex:1;
+  padding:13px;
+  overflow:auto;
+}
+.window iframe{
+  width:100%;
+  height:100%;
+  min-height:320px;
+  background:#fff;
+  border:0;
+  border-radius:8px;
+}
+.terminal{
+  height:100%;
+  padding:10px;
+  overflow:auto;
+  color:#7dffae;
+  background:#020805;
+  border-radius:8px;
+  font:13px monospace;
+  white-space:pre-wrap;
+}
+.terminal-input{font-family:monospace}
+.calc-display{text-align:right;font-size:26px}
+.calc-grid{grid-template-columns:repeat(4,1fr)}
+.calc-grid button{padding:13px}
+.canvas-wrap{
+  flex:1;
+  overflow:auto;
+  text-align:center;
+  background:#fff;
+  border-radius:8px;
+}
+canvas.paint{
+  display:block;
+  max-width:100%;
+  background:#fff;
+  cursor:crosshair;
+  touch-action:none;
+}
+.wallpaper-option{
+  height:70px;
+  border:2px solid transparent;
+  border-radius:8px;
+  cursor:pointer;
+}
+.wallpaper-option.selected,
+.wallpaper-option:hover{border-color:var(--accent)}
+.manager-preview{
+  width:48px;
+  height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:34px;
+  background:#0003;
+  border-radius:9px;
+}
+.manager-preview img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  border-radius:9px;
+}
+#contextMenu{
+  position:fixed;
+  z-index:9700;
+  min-width:205px;
+  padding:6px;
+  background:#0a1525f5;
+  border:1px solid #ffffff20;
+  border-radius:9px;
+  box-shadow:0 15px 45px #000b;
+  backdrop-filter:blur(var(--ui-blur));
+  -webkit-backdrop-filter:blur(var(--ui-blur));
+}
+#contextMenu button{
+  display:block;
+  width:100%;
+  text-align:left;
+  background:transparent;
+  border:0;
+}
+#notifications{
+  position:fixed;
+  z-index:9800;
+  right:12px;
+  bottom:calc(var(--taskbar) + 8px);
+  width:310px;
+  display:grid;
+  gap:8px;
+  pointer-events:none;
+}
+.toast{
+  padding:11px;
+  background:#0a1525f2;
+  border:1px solid #ffffff20;
+  border-left:3px solid var(--accent);
+  border-radius:10px;
+  box-shadow:0 15px 40px #0009;
+  backdrop-filter:blur(var(--ui-blur));
+  -webkit-backdrop-filter:blur(var(--ui-blur));
+}
+#lockScreen,#shutdownScreen{
+  position:fixed;
+  inset:0;
+  z-index:15000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  text-align:center;
+}
+#lockScreen{background:var(--wallpaper)}
+#shutdownScreen{background:#000}
+.lock-time{font-size:70px;font-weight:300}
+.lock-date{margin-bottom:28px;font-size:18px}
+.external-app-root{
+  width:100%;
+  height:100%;
+  padding:14px;
+  overflow:auto;
+  background:var(--panel);
+}
+@media(max-width:700px){
+  #widgets{display:none!important}
+  #startMenu{width:calc(100% - 16px)}
+  .window{min-width:255px}
+  .grid.two,.grid.three{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<script id="codecanvasEmbeddedState" type="application/json">{}</script>
+<main id="desktop">
+  <div id="desktopIcons"></div>
+  <div id="selectionBox"></div>
+  <aside id="widgets">
+    <div class="widget">
+      <div class="widget-time" id="widgetTime">CodeCanvas</div>
+      <div class="muted" id="widgetDate">Workspace ready</div>
+    </div>
+<div class="widget">
+  <strong>System</strong>
+  <div class="small muted" id="systemStatus">CodeCanvas OS is ready.</div>
+</div>
+
+<div class="widget sticky">
+  <strong>Sticky note</strong>
+  <textarea id="stickyNote" placeholder="Write something…"></textarea>
+</div>
+
+  </aside>
+</main>
+<nav id="taskbar">
+  <button id="startButton" title="Start">◈</button>
+  <button id="desktopButton" title="Switch desktop">▦</button>
+  <div id="taskButtons"></div>
+  <div id="tray">
+    <button id="notificationButton" title="Notifications">◉</button>
+    <span id="desktopIndicator" class="small">Desk 1</span>
+    <div id="clock">Ready</div>
+  </div>
+</nav>
+<section id="startMenu" class="hidden">
+  <h2>CodeCanvas OS</h2>
+  <input id="appSearch" placeholder="Search apps…">
+  <div id="searchResults"></div>
+  <h3>Applications</h3>
+  <div id="startApps" class="grid"></div>
+  <div class="start-footer">
+    <span class="muted">Local workspace</span>
+    <div class="row">
+      <button id="lockButton">Lock</button>
+      <button id="powerButton">Power</button>
+    </div>
+  </div>
+</section>
+<div id="contextMenu" class="hidden"></div>
+<div id="notifications"></div>
+<div id="lockScreen">
+  <div class="lock-time" id="lockTime"></div>
+  <div class="lock-date" id="lockDate"></div>
+  <button class="primary" id="unlockButton">Unlock CodeCanvas OS</button>
+</div>
+<div id="shutdownScreen">
+  <h1>CodeCanvas OS is shut down.</h1>
+  <button id="powerOnButton">Power on</button>
+</div>
+<input id="stateImporter" class="hidden" type="file" accept=".json">
+<script>
+(function(){
+"use strict";
+
+var prefix="codecanvas_os_";
+var memoryStore={};
+var embeddedState={};
+
+try{
+  embeddedState=JSON.parse(
+    document.getElementById("codecanvasEmbeddedState").textContent || "{}"
+  );
+}catch(error){
+  embeddedState={};
+}
+
+function installEmbeddedState(){
+  if(!embeddedState || !embeddedState.exportId || !embeddedState.data) return;
+
+  var marker=prefix+"installed_export";
+  var installed="";
+
+  try{
+    installed=localStorage.getItem(marker) || "";
+  }catch(error){}
+
+  if(installed===embeddedState.exportId) return;
+
+  Object.keys(embeddedState.data).forEach(function(key){
+    try{
+      localStorage.setItem(
+        prefix+key,
+        JSON.stringify(embeddedState.data[key])
+      );
+    }catch(error){
+      memoryStore[key]=embeddedState.data[key];
+    }
+  });
+
+  try{
+    localStorage.setItem(marker,embeddedState.exportId);
+  }catch(error){}
+}
+
+installEmbeddedState();
+
+function loadData(key,fallback){
+  try{
+    var value=localStorage.getItem(prefix+key);
+    return value===null ? fallback : JSON.parse(value);
+  }catch(error){
+    return Object.prototype.hasOwnProperty.call(memoryStore,key)
+      ? memoryStore[key]
+      : fallback;
+  }
+}
+
+function saveData(key,value){
+  memoryStore[key]=value;
+
+  try{
+    localStorage.setItem(prefix+key,JSON.stringify(value));
+    return true;
+  }catch(error){
+    notify(
+      "Storage warning",
+      "Browser storage is full. Export a portable save before closing."
+    );
+    return false;
+  }
+}
+
+function clearData(){
+  try{
+    var keys=[];
+    var i;
+
+    for(i=0;i<localStorage.length;i++){
+      var key=localStorage.key(i);
+      if(key && key.indexOf(prefix)===0) keys.push(key);
+    }
+
+    keys.forEach(function(key){
+      localStorage.removeItem(key);
+    });
+  }catch(error){}
+
+  memoryStore={};
+}
+
+function $(selector,root){
+  var element=(root || document).querySelector(selector);
+
+  if(!element && String(selector).indexOf("[data-context=")===0){
+    return {onclick:null};
+  }
+
+  return element;
+}
+
+function $all(selector,root){
+  return Array.prototype.slice.call(
+    (root || document).querySelectorAll(selector)
+  );
+}
+
+function escapeHTML(value){
+  var element=document.createElement("div");
+  element.textContent=String(value===undefined ? "" : value);
+  return element.innerHTML;
+}
+
+function makeId(label){
+  return String(label || "item")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g,"_")
+    .replace(/^_+|_+$/g,"")+
+    "_"+
+    Math.random().toString(36).slice(2,8);
+}
+
+function download(name,text,type){
+  var blob=new Blob([text],{type:type || "text/plain"});
+  var url=URL.createObjectURL(blob);
+  var link=document.createElement("a");
+
+  link.href=url;
+  link.download=name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(function(){
+    URL.revokeObjectURL(url);
+  },1200);
+}
+
+function readFileAsText(file,callback){
+  var reader=new FileReader();
+
+  reader.onload=function(){
+    callback(String(reader.result || ""));
+  };
+
+  reader.readAsText(file);
+}
+
+function readFileAsDataURL(file,callback){
+  var reader=new FileReader();
+
+  reader.onload=function(){
+    callback(String(reader.result || ""));
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function hexToRgba(hex,alpha){
+  var value=String(hex || "").replace("#","");
+
+  if(value.length===3){
+    value=value.split("").map(function(character){
+      return character+character;
+    }).join("");
+  }
+
+  var number=parseInt(value,16);
+
+  if(Number.isNaN(number)){
+    return "rgba(16,27,43,"+alpha+")";
+  }
+
+  return "rgba("+
+    ((number>>16)&255)+","+
+    ((number>>8)&255)+","+
+    (number&255)+","+
+    alpha+
+  ")";
+}
+
+function getTaskbarHeight(){
+  return parseInt(
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--taskbar"),
+    10
+  ) || 50;
+}
+
+var wallpapers=[
+  "radial-gradient(circle at 18% 15%,#174c62 0,transparent 34%),radial-gradient(circle at 88% 80%,#283d7d 0,transparent 39%),linear-gradient(135deg,#07101c,#111d35 58%,#07101c)",
+  "radial-gradient(circle at 50% 120%,#ff7c5c 0,transparent 48%),linear-gradient(150deg,#351849,#15172f 60%,#08111e)",
+  "linear-gradient(130deg,#051b14,#0c3f30 45%,#05110d)",
+  "radial-gradient(circle at 30% 30%,#293d67,transparent 30%),linear-gradient(145deg,#06080f,#171b2a)",
+  "radial-gradient(circle at 80% 15%,#6a174f 0,transparent 32%),radial-gradient(circle at 20% 85%,#194d79 0,transparent 38%),linear-gradient(145deg,#120817,#17162e)",
+  "linear-gradient(135deg,#1f2c44 0 25%,#243753 25% 50%,#17263e 50% 75%,#20324b 75%)"
+];
+
+var defaultSettings={
+  theme:"dark",
+  accent:"#6af5c8",
+  wallpaper:0,
+  widgets:true,
+  contrast:false,
+  reducedMotion:false,
+  blurEffects:true,
+  roundedCorners:true,
+  fontSize:14,
+  windowOpacity:95,
+  taskbarSize:"normal",
+  clock24:false,
+  showSeconds:false,
+  defaultOpenMode:"window",
+  startupApp:"",
+  startupNotification:true
+};
+
+var settings=Object.assign(
+  {},
+  defaultSettings,
+  loadData("settings",{})
+);
+
+var files=loadData("files",{
+  "Welcome.txt":
+    "Welcome to CodeCanvas OS.\n\nUse App Manager to install HTML applications.",
+  "Example.html":
+    "<!DOCTYPE html><html><head><title>Example</title></head><body style='font-family:Arial;padding:30px'><h1>Hello from CodeCanvas OS</h1><p>Edit this page in CodeCanvas Embedder.</p></body></html>"
+});
+
+var notes=loadData("notes",[
+  {
+    id:makeId("note"),
+    name:"Welcome",
+    text:"CodeCanvas OS is ready."
+  }
+]);
+
+var bookmarks=loadData("bookmarks",[
+  "about:blank",
+  "https://example.com"
+]);
+
+var contacts=loadData("contacts",[]);
+var recycleBin=loadData("recycleBin",[]);
+var customApps=loadData("customApps",[]);
+var appCustomizations=loadData("appCustomizations",{});
+var desktopPositions=loadData("desktopPositions",{});
+var notificationHistory=loadData("notifications",[]);
+
+var activeWindow=null;
+var currentDesktop=0;
+var zIndex=30;
+
+function applySettings(){
+  var taskbarSizes={
+    compact:42,
+    normal:50,
+    large:62
+  };
+
+  var basePanel=settings.contrast
+    ? "#050505"
+    : settings.theme==="light"
+      ? "#f7faff"
+      : "#101b2b";
+
+  document.body.classList.toggle("light",settings.theme==="light");
+  document.body.classList.toggle("contrast",settings.contrast);
+  document.body.classList.toggle("reduce-motion",settings.reducedMotion);
+  document.body.classList.toggle("no-blur",!settings.blurEffects);
+  document.body.classList.toggle("square-corners",!settings.roundedCorners);
+
+  document.body.style.fontSize=
+    Math.max(12,Math.min(18,Number(settings.fontSize) || 14))+
+    "px";
+
+  document.documentElement.style.setProperty(
+    "--accent",
+    settings.accent
+  );
+
+  document.documentElement.style.setProperty(
+    "--wallpaper",
+    wallpapers[settings.wallpaper] || wallpapers[0]
+  );
+
+  document.documentElement.style.setProperty(
+    "--taskbar",
+    (taskbarSizes[settings.taskbarSize] || 50)+"px"
+  );
+
+  document.documentElement.style.setProperty(
+    "--ui-blur",
+    settings.blurEffects ? "18px" : "0px"
+  );
+
+  document.documentElement.style.setProperty(
+    "--window-bg",
+    hexToRgba(
+      basePanel,
+      Math.max(
+        0.55,
+        Math.min(1,(Number(settings.windowOpacity) || 95)/100)
+      )
+    )
+  );
+
+  $("#widgets").style.display=settings.widgets ? "grid" : "none";
+
+  saveData("settings",settings);
+}
+
+function notify(title,message){
+  var item={
+    title:title,
+    message:message,
+    date:new Date().toISOString()
+  };
+
+  notificationHistory.unshift(item);
+  notificationHistory=notificationHistory.slice(0,40);
+  saveData("notifications",notificationHistory);
+
+  var toast=document.createElement("div");
+  toast.className="toast";
+  toast.innerHTML=
+    "<strong>"+escapeHTML(title)+"</strong>"+
+    "<div class='small muted'>"+escapeHTML(message)+"</div>";
+
+  $("#notifications").appendChild(toast);
+
+  setTimeout(function(){
+    if(toast.parentNode) toast.remove();
+  },4000);
+}
+
+function updateClock(){
+  var now=new Date();
+
+  var timeOptions={
+    hour:"2-digit",
+    minute:"2-digit",
+    hour12:!settings.clock24
+  };
+
+  if(settings.showSeconds){
+    timeOptions.second="2-digit";
+  }
+
+  var time=now.toLocaleTimeString([],timeOptions);
+
+  var date=now.toLocaleDateString([],{
+    weekday:"long",
+    month:"long",
+    day:"numeric"
+  });
+
+  $("#clock").innerHTML=
+    time+"<br>"+
+    now.toLocaleDateString([],{month:"numeric",day:"numeric"});
+
+  $("#widgetTime").textContent=time;
+  $("#widgetDate").textContent=date;
+  $("#lockTime").textContent=time;
+  $("#lockDate").textContent=date;
+
+  $("#systemStatus").textContent=
+    Object.keys(files).length+" files • "+
+    customApps.length+" installed apps • "+
+    $all(".window").length+" open windows";
+}
+
+function iconMarkup(icon){
+  icon=icon || "◈";
+
+  if(/^data:image\//i.test(icon) || /^https?:\/\//i.test(icon)){
+    return (
+      "<span class='app-icon-render'>"+
+        "<img src='"+escapeHTML(icon)+"' alt=''>"+
+      "</span>"
+    );
+  }
+
+  return (
+    "<span class='app-icon-render'>"+
+      escapeHTML(icon)+
+    "</span>"
+  );
+}
+
+function appDetails(appId){
+  var app=apps[appId];
+  if(!app) return null;
+
+  var customization=appCustomizations[appId] || {};
+
+  return {
+    id:appId,
+    name:customization.name || app.name,
+    icon:customization.icon || app.icon,
+    width:app.width || 650,
+    height:app.height || 480,
+    render:app.render,
+    custom:!!app.custom,
+    openMode:
+      customization.openMode ||
+      settings.defaultOpenMode ||
+      "window"
+  };
+}
+
+function defaultPosition(index){
+  return {
+    x:12+(index%2)*90,
+    y:12+Math.floor(index/2)*88
+  };
+}
+
+function clampIconPosition(position){
+  return {
+    x:Math.max(
+      0,
+      Math.min(window.innerWidth-88,Number(position.x) || 0)
+    ),
+    y:Math.max(
+      0,
+      Math.min(
+        window.innerHeight-getTaskbarHeight()-90,
+        Number(position.y) || 0
+      )
+    )
+  };
+}
+
+function getAppPosition(appId,index){
+  return clampIconPosition(
+    desktopPositions[appId] || defaultPosition(index)
+  );
+}
+
+function setAppPosition(appId,x,y){
+  desktopPositions[appId]=clampIconPosition({x:x,y:y});
+  saveData("desktopPositions",desktopPositions);
+}
+
+var apps={
+  studio:{
+    name:"CodeCanvas Embedder",
+    icon:"▣",
+    width:960,
+    height:650,
+    render:renderStudio
+  },
+  appmanager:{
+    name:"App Manager",
+    icon:"⊞",
+    width:900,
+    height:650,
+    render:renderAppManager
+  },
+  terminal:{
+    name:"Terminal",
+    icon:"›_",
+    width:650,
+    height:430,
+    render:renderTerminal
+  },
+  notepad:{
+    name:"Notepad",
+    icon:"▤",
+    width:650,
+    height:500,
+    render:renderNotepad
+  },
+  editor:{
+    name:"File Editor",
+    icon:"✎",
+    width:820,
+    height:600,
+    render:renderFileEditor
+  },
+  files:{
+    name:"File Runner",
+    icon:"▱",
+    width:700,
+    height:500,
+    render:renderFiles
+  },
+  calculator:{
+    name:"Calculator",
+    icon:"▦",
+    width:330,
+    height:470,
+    render:renderCalculator
+  },
+  paint:{
+    name:"Paint",
+    icon:"✎",
+    width:760,
+    height:570,
+    render:renderPaint
+  },
+  contacts:{
+    name:"Contacts",
+    icon:"◎",
+    width:550,
+    height:480,
+    render:renderContacts
+  },
+  settings:{
+    name:"Settings",
+    icon:"⚙",
+    width:860,
+    height:650,
+    render:renderSettings
+  },
+  assistant:{
+    name:"AI Assistant",
+    icon:"✦",
+    width:650,
+    height:520,
+    render:renderAssistant
+  },
+  about:{
+    name:"About CodeCanvas OS",
+    icon:"◈",
+    width:560,
+    height:440,
+    render:renderAbout
+  }
+};
+
+function registerCustomApps(){
+  Object.keys(apps).forEach(function(appId){
+    if(apps[appId].custom) delete apps[appId];
+  });
+
+  customApps.forEach(function(customApp){
+    apps[customApp.id]={
+      name:customApp.name,
+      icon:customApp.icon || "◫",
+      width:customApp.width || 800,
+      height:customApp.height || 600,
+      custom:true,
+      render:function(body){
+        renderImportedApp(body,customApp);
+      }
+    };
+  });
+}
+
+function installURLApp(name,url,icon){
+  url=normalizeAppURL(url);
+
+  if(!url){
+    notify("App install failed","Enter a website URL first.");
+    return;
+  }
+
+  var appId=makeId(name);
+  customApps.push({
+    id:appId,
+    name:name,
+    icon:icon || "◎",
+    url:url,
+    html:"",
+    width:900,
+    height:650,
+    installed:new Date().toISOString()
+  });
+  appCustomizations[appId]={
+    showOnDesktop:true,
+    openMode:""
+  };
+  setAppPosition(
+    appId,
+    12+(desktopAppIds().length%5)*90,
+    12+Math.floor(desktopAppIds().length/5)*88
+  );
+  saveData("customApps",customApps);
+  saveData("appCustomizations",appCustomizations);
+  registerCustomApps();
+  renderLaunchers();
+  updateClock();
+  notify("Website app installed",name+" now embeds "+url+".");
+}
+
+registerCustomApps();
+
+function desktopAppIds(){
+  return Object.keys(apps).filter(function(appId){
+    var customization=appCustomizations[appId] || {};
+    return customization.showOnDesktop!==false;
+  });
+}
+
+function launchApp(appId,data,forcedMode){
+  var app=appDetails(appId);
+  if(!app) return;
+
+  var mode=forcedMode || app.openMode;
+
+  if(mode==="blank"){
+    openAppInBlank(appId,data);
+  }else{
+    openApp(appId,data);
+  }
+}
+
+function openAppInBlank(appId,data){
+  var app=appDetails(appId);
+  if(!app) return;
+
+  var externalWindow=window.open("about:blank","_blank");
+
+  if(!externalWindow){
+    notify(
+      "Pop-up blocked",
+      "Allow pop-ups to open this app in about:blank."
+    );
+    return;
+  }
+
+  var styles=$all("style").map(function(style){
+    return style.textContent;
+  }).join("\n");
+
+  try{
+    externalWindow.document.open();
+    externalWindow.document.write(
+      "<!DOCTYPE html>"+
+      "<html lang='en'>"+
+      "<head>"+
+        "<meta charset='UTF-8'>"+
+        "<meta name='viewport' content='width=device-width,initial-scale=1'>"+
+        "<title>"+escapeHTML(app.name)+"</title>"+
+        "<style>"+
+          styles+
+          "\nhtml,body{width:100%;height:100%;margin:0;overflow:hidden}"+
+          "\nbody{min-height:100vh}"+
+          "\n.external-app-root{width:100vw;height:100vh;min-height:100vh;padding:0;overflow:hidden}"+
+          "\n.external-app-root iframe{display:block;width:100vw;height:100vh;min-height:100vh;margin:0;border:0}"+
+        "</style>"+
+  "</head>"+
+  "<body class='"+escapeHTML(document.body.className)+"'>"+
+    "<main id='externalAppRoot' class='external-app-root'></main>"+
+  "</body>"+
+  "</html>"
+);
+externalWindow.document.close();
+
+var root=externalWindow.document.getElementById("externalAppRoot");
+
+if(!root){
+  throw new Error("The external application container was not created.");
+}
+
+externalWindow.document.documentElement.style.setProperty(
+  "--accent",
+  settings.accent
+);
+
+externalWindow.document.documentElement.style.setProperty(
+  "--wallpaper",
+  wallpapers[settings.wallpaper] || wallpapers[0]
+);
+
+externalWindow.document.documentElement.style.setProperty(
+  "--ui-blur",
+  settings.blurEffects ? "18px" : "0px"
+);
+
+externalWindow.document.documentElement.style.setProperty(
+  "--window-bg",
+  getComputedStyle(document.documentElement)
+    .getPropertyValue("--window-bg")
+);
+
+externalWindow.document.body.style.fontSize=
+  Math.max(12,Math.min(18,Number(settings.fontSize) || 14))+
+  "px";
+
+var externalCustomApp=customApps.find(function(item){
+  return item.id===appId;
+});
+
+if(externalCustomApp){
+  renderExternalImportedApp(root,externalCustomApp);
+}else{
+  app.render(root,null,data || {});
+}
+
+notify(
+  "App opened",
+  app.name+" opened in a new about:blank tab."
+);
+
+}catch(error){
+externalWindow.document.body.innerHTML=
+"<main style='font-family:Arial;padding:24px'>"+
+"<h2>Application error</h2>"+
+"<pre style='white-space:pre-wrap'>"+
+escapeHTML(error.message || String(error))+
+"</pre>"+
+"</main>";
+}
+}
+function renderLaunchers(){
+registerCustomApps();
+var ids=desktopAppIds();
+$("#desktopIcons").innerHTML=ids.map(function(appId,index){
+var app=appDetails(appId);
+var position=getAppPosition(appId,index);
+return (
+  "<div class='desktop-icon' "+
+    "data-desktop-app='"+escapeHTML(appId)+"' "+
+    "style='left:"+position.x+"px;top:"+position.y+"px'>"+
+    iconMarkup(app.icon)+
+    "<div class='icon-name'>"+escapeHTML(app.name)+"</div>"+
+  "</div>"
+);
+
+}).join("");
+$all("[data-desktop-app]").forEach(function(icon){
+setupDesktopIcon(icon);
+});
+$("#startApps").innerHTML=Object.keys(apps).map(function(appId){
+var app=appDetails(appId);
+return (
+  "<button class='start-app' data-start-app='"+escapeHTML(appId)+"'>"+
+    iconMarkup(app.icon)+
+    "<small>"+escapeHTML(app.name)+"</small>"+
+  "</button>"
+);
+
+}).join("");
+$all("[data-start-app]").forEach(function(button){
+button.addEventListener("click",function(){
+launchApp(button.getAttribute("data-start-app"));
+});
+});
+}
+function setupDesktopIcon(icon){
+var appId=icon.getAttribute("data-desktop-app");
+var dragging=false;
+var moved=false;
+var startX=0;
+var startY=0;
+var originalX=0;
+var originalY=0;
+icon.addEventListener("dblclick",function(){
+if(!moved) launchApp(appId);
+});
+icon.addEventListener("click",function(){
+$all(".desktop-icon").forEach(function(other){
+other.classList.remove("selected");
+});
+icon.classList.add("selected");
+
+});
+icon.addEventListener("pointerdown",function(event){
+if(event.button!==0) return;
+dragging=true;
+moved=false;
+startX=event.clientX;
+startY=event.clientY;
+originalX=icon.offsetLeft;
+originalY=icon.offsetTop;
+icon.setPointerCapture(event.pointerId);
+
+});
+icon.addEventListener("pointermove",function(event){
+if(!dragging) return;
+var dx=event.clientX-startX;
+var dy=event.clientY-startY;
+
+if(Math.abs(dx)>3 || Math.abs(dy)>3) moved=true;
+
+var position=clampIconPosition({
+  x:originalX+dx,
+  y:originalY+dy
+});
+
+icon.style.left=position.x+"px";
+icon.style.top=position.y+"px";
+
+});
+icon.addEventListener("pointerup",function(){
+if(!dragging) return;
+dragging=false;
+
+if(moved){
+  setAppPosition(appId,icon.offsetLeft,icon.offsetTop);
+}
+
+});
+icon.addEventListener("pointercancel",function(){
+dragging=false;
+});
+}
+function openApp(appId,data){
+var app=appDetails(appId);
+if(!app) return;
+$("#startMenu").classList.add("hidden");
+var win=document.createElement("section");
+var windowId=makeId("window");
+var offset=($all(".window").length*24)%230;
+var availableHeight=
+window.innerHeight-getTaskbarHeight()-15;
+win.id=windowId;
+win.className="window";
+win.setAttribute("data-app",appId);
+win.setAttribute("data-desktop",String(currentDesktop));
+win.style.width=Math.min(app.width,window.innerWidth-24)+"px";
+win.style.height=Math.min(app.height,availableHeight)+"px";
+win.style.left=(45+offset)+"px";
+win.style.top=(28+(offset%140))+"px";
+win.innerHTML=
+"<div class='titlebar'>"+
+iconMarkup(app.icon)+
+"<div class='window-title'>"+escapeHTML(app.name)+"</div>"+
+"<div class='window-controls'>"+
+"<button data-window-action='external' title='Open in about:blank'>↗</button>"+
+"<button data-window-action='pin' title='Pin'>◇</button>"+
+"<button data-window-action='minimize' title='Minimize'>—</button>"+
+"<button data-window-action='maximize' title='Maximize'>□</button>"+
+"<button data-window-action='close' class='close' title='Close'>×</button>"+
+"</div>"+
+"</div>"+
+"<div class='window-body'></div>";
+$("#desktop").appendChild(win);
+setupWindow(win);
+focusWindow(win);
+try{
+app.render($(".window-body",win),win,data || {});
+}catch(error){
+$(".window-body",win).innerHTML=
+"<h3>Application error</h3>"+
+"<pre>"+escapeHTML(error.message)+"</pre>";
+}
+renderTaskbar();
+updateClock();
+}
+function setupWindow(win){
+var titlebar=$(".titlebar",win);
+var dragging=false;
+var offsetX=0;
+var offsetY=0;
+titlebar.addEventListener("pointerdown",function(event){
+if(event.target.closest("button")) return;
+if(win.classList.contains("maximized")) return;
+dragging=true;
+offsetX=event.clientX-win.offsetLeft;
+offsetY=event.clientY-win.offsetTop;
+
+focusWindow(win);
+titlebar.setPointerCapture(event.pointerId);
+
+});
+titlebar.addEventListener("pointermove",function(event){
+if(!dragging) return;
+win.style.left=Math.max(
+  0,
+  Math.min(
+    window.innerWidth-win.offsetWidth,
+    event.clientX-offsetX
+  )
+)+"px";
+
+win.style.top=Math.max(
+  0,
+  Math.min(
+    window.innerHeight-getTaskbarHeight()-win.offsetHeight,
+    event.clientY-offsetY
+  )
+)+"px";
+
+});
+titlebar.addEventListener("pointerup",function(){
+dragging=false;
+});
+titlebar.addEventListener("pointercancel",function(){
+dragging=false;
+});
+win.addEventListener("pointerdown",function(){
+focusWindow(win);
+});
+$all("[data-window-action]",win).forEach(function(button){
+button.addEventListener("click",function(event){
+event.stopPropagation();
+  var action=button.getAttribute("data-window-action");
+
+  if(action==="close"){
+    closeWindow(win.id);
+  }
+
+  if(action==="minimize"){
+    win.classList.add("minimized");
+
+    if(activeWindow===win){
+      activeWindow=null;
+    }
+
+    renderTaskbar();
+  }
+
+  if(action==="maximize"){
+    win.classList.toggle("maximized");
+    focusWindow(win);
+  }
+
+  if(action==="pin"){
+    win.classList.toggle("pinned");
+
+    if(win.classList.contains("pinned")){
+      win.setAttribute("data-pinned","true");
+      notify("Window pinned","Visible on every desktop.");
+    }else{
+      win.removeAttribute("data-pinned");
+    }
+  }
+
+  if(action==="external"){
+    openAppInBlank(win.getAttribute("data-app"));
+
+    if(
+      appDetails(win.getAttribute("data-app")) &&
+      appDetails(win.getAttribute("data-app")).openMode==="blank"
+    ){
+      closeWindow(win.id);
+    }
+  }
+});
+
+});
+}
+function focusWindow(win){
+if(!win) return;
+$all(".window").forEach(function(item){
+item.classList.remove("focused");
+});
+activeWindow=win;
+win.classList.remove("minimized");
+win.classList.add("focused");
+win.style.zIndex=String(++zIndex);
+renderTaskbar();
+}
+function closeWindow(windowId){
+var win=document.getElementById(windowId);
+if(!win) return;
+win.remove();
+if(activeWindow===win){
+activeWindow=null;
+}
+renderTaskbar();
+updateClock();
+}
+function renderTaskbar(){
+var visibleWindows=$all(".window").filter(function(win){
+return (
+Number(win.getAttribute("data-desktop"))===currentDesktop ||
+win.getAttribute("data-pinned")==="true"
+);
+});
+$("#taskButtons").innerHTML=visibleWindows.map(function(win){
+var app=appDetails(win.getAttribute("data-app"));
+if(!app) return "";
+return (
+  "<button class='task-button "+
+    (win===activeWindow ? "active" : "")+
+    "' data-task-window='"+win.id+"'>"+
+    escapeHTML(app.name)+
+  "</button>"
+);
+
+}).join("");
+$all("[data-task-window]").forEach(function(button){
+button.addEventListener("click",function(){
+var win=document.getElementById(
+button.getAttribute("data-task-window")
+);
+  if(!win) return;
+
+  if(win===activeWindow && !win.classList.contains("minimized")){
+    win.classList.add("minimized");
+    activeWindow=null;
+  }else{
+    focusWindow(win);
+  }
+
+  renderTaskbar();
+});
+
+});
+}
+function switchDesktop(number){
+currentDesktop=number;
+$all(".window").forEach(function(win){
+var visible=(
+Number(win.getAttribute("data-desktop"))===number ||
+win.getAttribute("data-pinned")==="true"
+);
+win.classList.toggle("hidden",!visible);
+
+});
+$("#desktopIndicator").textContent="Desk "+(number+1);
+renderTaskbar();
+notify("Virtual desktop","Desktop "+(number+1));
+}
+function normalizeAppURL(value){
+  value=String(value || "").trim();
+
+  if(!value) return "";
+
+  if(
+    /^about:/i.test(value) ||
+    /^data:/i.test(value) ||
+    /^blob:/i.test(value) ||
+    /^[a-z][a-z0-9+.-]*:\/\//i.test(value)
+  ){
+    return value;
+  }
+
+  return "https://"+value;
+}
+
+function renderImportedApp(body,customApp){
+body.style.padding="0";
+var iframe=document.createElement("iframe");
+iframe.sandbox=
+"allow-scripts allow-forms allow-modals allow-downloads allow-popups allow-same-origin";
+
+if(customApp.url){
+  iframe.src=normalizeAppURL(customApp.url);
+}else{
+  iframe.srcdoc=customApp.html || "";
+}
+
+body.appendChild(iframe);
+}
+
+function renderExternalImportedApp(root,customApp){
+  root.style.padding="0";
+
+  var iframe=document.createElement("iframe");
+  iframe.sandbox=
+    "allow-scripts allow-forms allow-modals allow-downloads allow-popups allow-same-origin";
+  iframe.style.cssText=
+    "display:block;width:100vw;height:100vh;min-height:100vh;margin:0;border:0;background:#fff";
+
+  if(customApp.url){
+    iframe.src=normalizeAppURL(customApp.url);
+  }else{
+    iframe.srcdoc=customApp.html || "";
+  }
+
+  root.appendChild(iframe);
+}
+/* CodeCanvas Embedder */
+function renderStudio(body){
+var mode=loadData("embedderMode","url");
+var lastURL=loadData("embedderLastURL","about:blank");
+var lastHTML=loadData(
+"embedderLastHTML",
+files["Example.html"] || ""
+);
+body.innerHTML=
+"<div class='app-fill'>"+
+"<div class='row wrap'>"+
+"<h2 class='grow' style='margin:0'>CodeCanvas Embedder</h2>"+
+"<button data-embed-mode='url'>URL</button>"+
+"<button data-embed-mode='html'>HTML</button>"+
+"<button data-embed-action='import'>Import</button>"+
+"<button data-embed-action='export'>Export</button>"+
+"<input class='embed-file hidden' type='file' accept='.html,.htm,.txt'>"+
+"</div>"+
+  "<div class='row wrap'>"+
+    "<select class='embed-bookmarks grow'></select>"+
+    "<button data-embed-action='bookmark' title='Save bookmark'>☆</button>"+
+    "<button data-embed-action='remove-bookmark'>Remove</button>"+
+  "</div>"+
+
+  "<input class='embed-url' placeholder='Enter a URL, such as https://example.com'>"+
+  "<textarea class='embed-html grow' spellcheck='false' placeholder='Paste or import a complete HTML document…'></textarea>"+
+
+  "<div class='row wrap'>"+
+    "<button class='primary' data-embed-action='preview'>Preview</button>"+
+    "<button data-embed-action='render'>Render</button>"+
+    "<button data-embed-action='clear'>Clear</button>"+
+    "<button data-embed-action='fullscreen'>Fullscreen</button>"+
+    "<span class='embed-status muted grow'></span>"+
+  "</div>"+
+
+  "<iframe class='embed-preview' "+
+    "sandbox='allow-scripts allow-forms allow-modals allow-downloads allow-popups allow-same-origin' "+
+    "allowfullscreen></iframe>"+
+"</div>";
+
+var urlEditor=$(".embed-url",body);
+var htmlEditor=$(".embed-html",body);
+var preview=$(".embed-preview",body);
+var status=$(".embed-status",body);
+var bookmarkPicker=$(".embed-bookmarks",body);
+var fileInput=$(".embed-file",body);
+urlEditor.value=lastURL;
+htmlEditor.value=lastHTML;
+function normalizeURL(value){
+value=String(value || "").trim();
+if(!value) return "about:blank";
+
+if(
+  /^about:/i.test(value) ||
+  /^data:/i.test(value) ||
+  /^blob:/i.test(value) ||
+  /^[a-z][a-z0-9+.-]*:\/\//i.test(value)
+){
+  return value;
+}
+
+return "https://"+value;
+
+}
+function setStatus(message){
+status.textContent=message || "";
+}
+function saveEmbedderState(){
+saveData("embedderMode",mode);
+saveData("embedderLastURL",urlEditor.value);
+saveData("embedderLastHTML",htmlEditor.value);
+}
+function refreshBookmarks(selectedURL){
+bookmarkPicker.innerHTML=
+"<option value=''>Bookmarks</option>"+
+bookmarks.map(function(url){
+return (
+"<option value='"+escapeHTML(url)+"'>"+
+escapeHTML(url)+
+"</option>"
+);
+}).join("");
+if(selectedURL && bookmarks.indexOf(selectedURL)!==-1){
+  bookmarkPicker.value=selectedURL;
+}
+
+}
+function setMode(nextMode){
+mode=nextMode==="html" ? "html" : "url";
+urlEditor.classList.toggle("hidden",mode!=="url");
+htmlEditor.classList.toggle("hidden",mode!=="html");
+
+$all("[data-embed-mode]",body).forEach(function(button){
+  button.classList.toggle(
+    "primary",
+    button.getAttribute("data-embed-mode")===mode
+  );
+});
+
+saveEmbedderState();
+setStatus(mode==="url" ? "URL mode" : "HTML mode");
+
+}
+function renderContent(){
+saveEmbedderState();
+preview.classList.remove("hidden");
+if(mode==="html"){
+  preview.removeAttribute("src");
+  preview.srcdoc=htmlEditor.value;
+
+  setStatus(
+    "HTML rendered at "+
+    new Date().toLocaleTimeString()
+  );
+
+  return;
+}
+
+var url=normalizeURL(urlEditor.value);
+urlEditor.value=url;
+
+preview.removeAttribute("srcdoc");
+preview.src=url;
+
+saveEmbedderState();
+
+setStatus(
+  "URL rendered at "+
+  new Date().toLocaleTimeString()
+);
+
+}
+function openPreview(){
+saveEmbedderState();
+var previewWindow=window.open("about:blank","_blank");
+
+if(!previewWindow){
+  notify(
+    "Preview blocked",
+    "Allow pop-ups to open the preview."
+  );
+  return;
+}
+
+if(mode==="url"){
+  var url=normalizeURL(urlEditor.value);
+
+  urlEditor.value=url;
+  saveEmbedderState();
+
+  try{
+    previewWindow.location.replace(url);
+  }catch(error){
+    previewWindow.location.href=url;
+  }
+
+  setStatus("URL opened in a new preview.");
+  return;
+}
+
+try{
+  previewWindow.document.open();
+  previewWindow.document.write(htmlEditor.value);
+  previewWindow.document.close();
+  setStatus("HTML opened in a new preview.");
+}catch(error){
+  previewWindow.close();
+
+  notify(
+    "Preview failed",
+    error.message || "The HTML preview could not be opened."
+  );
+}
+
+}
+function exportContent(){
+saveEmbedderState();
+if(mode==="html"){
+  if(!htmlEditor.value.trim()){
+    notify(
+      "CodeCanvas Embedder",
+      "Enter or import HTML before exporting."
+    );
+    return;
+  }
+
+  download(
+    "codecanvas-embedder-export.html",
+    htmlEditor.value,
+    "text/html"
+  );
+
+  setStatus("Raw HTML export started.");
+  return;
+}
+
+var url=normalizeURL(urlEditor.value);
+urlEditor.value=url;
+
+var exportedHTML=
+  "<!DOCTYPE html>\n"+
+  "<html lang=\"en\">\n"+
+  "<head>\n"+
+  "<meta charset=\"UTF-8\">\n"+
+  "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n"+
+  "<title>CodeCanvas Embedded Page</title>\n"+
+  "<style>\n"+
+  "html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#000}\n"+
+  "iframe{display:block;width:100%;height:100%;border:0;background:#fff}\n"+
+  "</style>\n"+
+  "</head>\n"+
+  "<body>\n"+
+  "<iframe src=\""+escapeHTML(url)+"\" allowfullscreen></iframe>\n"+
+  "</body>\n"+
+  "</html>";
+
+download(
+  "codecanvas-url-embed.html",
+  exportedHTML,
+  "text/html"
+);
+
+saveEmbedderState();
+setStatus("URL wrapper export started.");
+
+}
+function clearCurrentMode(){
+if(mode==="html"){
+htmlEditor.value="";
+preview.removeAttribute("src");
+preview.srcdoc="";
+}else{
+urlEditor.value="about:blank";
+preview.removeAttribute("srcdoc");
+preview.src="about:blank";
+}
+saveEmbedderState();
+setStatus("Cleared.");
+
+}
+function enterFullscreen(){
+var request=
+preview.requestFullscreen ||
+preview.webkitRequestFullscreen ||
+preview.msRequestFullscreen;
+if(request){
+  request.call(preview);
+  setStatus("Opening fullscreen preview.");
+}else{
+  notify(
+    "Fullscreen unavailable",
+    "This browser does not support iframe fullscreen."
+  );
+}
+
+}
+$all("[data-embed-mode]",body).forEach(function(button){
+button.onclick=function(){
+setMode(button.getAttribute("data-embed-mode"));
+};
+});
+$("[data-embed-action='render']",body).onclick=renderContent;
+$("[data-embed-action='preview']",body).onclick=openPreview;
+$("[data-embed-action='export']",body).onclick=exportContent;
+$("[data-embed-action='clear']",body).onclick=clearCurrentMode;
+$("[data-embed-action='fullscreen']",body).onclick=enterFullscreen;
+$("[data-embed-action='import']",body).onclick=function(){
+fileInput.click();
+};
+fileInput.onchange=function(event){
+var file=event.target.files[0];
+if(!file) return;
+readFileAsText(file,function(text){
+  htmlEditor.value=text;
+  setMode("html");
+  saveEmbedderState();
+
+  notify(
+    "HTML imported",
+    file.name+" was loaded into CodeCanvas Embedder."
+  );
+
+  setStatus(file.name+" imported.");
+});
+
+event.target.value="";
+
+};
+$("[data-embed-action='bookmark']",body).onclick=function(){
+var url=normalizeURL(urlEditor.value);
+urlEditor.value=url;
+if(bookmarks.indexOf(url)!==-1){
+  refreshBookmarks(url);
+  setStatus("This URL is already bookmarked.");
+  return;
+}
+
+bookmarks.push(url);
+saveData("bookmarks",bookmarks);
+refreshBookmarks(url);
+saveEmbedderState();
+
+notify("Bookmark saved",url);
+setStatus("Bookmark saved.");
+
+};
+$("[data-embed-action='remove-bookmark']",body).onclick=function(){
+var selected=bookmarkPicker.value;
+if(!selected){
+  setStatus("Select a bookmark to remove.");
+  return;
+}
+
+bookmarks=bookmarks.filter(function(url){
+  return url!==selected;
+});
+
+saveData("bookmarks",bookmarks);
+refreshBookmarks();
+
+notify("Bookmark removed",selected);
+setStatus("Bookmark removed.");
+
+};
+bookmarkPicker.onchange=function(){
+if(!bookmarkPicker.value) return;
+urlEditor.value=bookmarkPicker.value;
+setMode("url");
+saveEmbedderState();
+setStatus("Bookmark loaded.");
+
+};
+urlEditor.oninput=saveEmbedderState;
+htmlEditor.oninput=saveEmbedderState;
+urlEditor.onkeydown=function(event){
+if(event.key==="Enter"){
+event.preventDefault();
+renderContent();
+}
+};
+refreshBookmarks(lastURL);
+setMode(mode);
+renderContent();
+}
+function installCustomApp(name,icon,html){
+var appId=makeId(name);
+customApps.push({
+  id:appId,
+  name:name,
+  icon:icon || "◫",
+  html:html,
+  width:800,
+  height:600,
+  installed:new Date().toISOString()
+});
+appCustomizations[appId]={
+showOnDesktop:true,
+openMode:""
+};
+setAppPosition(
+appId,
+12+(desktopAppIds().length%5)*90,
+12+Math.floor(desktopAppIds().length/5)*88
+);
+saveData("customApps",customApps);
+saveData("appCustomizations",appCustomizations);
+registerCustomApps();
+renderLaunchers();
+updateClock();
+notify("App installed",name+" was added to CodeCanvas OS.");
+}
+function removeCustomApp(appId){
+var app=customApps.find(function(item){
+return item.id===appId;
+});
+if(!app) return;
+if(!confirm("Uninstall "+app.name+"?")) return;
+customApps=customApps.filter(function(item){
+return item.id!==appId;
+});
+delete appCustomizations[appId];
+delete desktopPositions[appId];
+saveData("customApps",customApps);
+saveData("appCustomizations",appCustomizations);
+saveData("desktopPositions",desktopPositions);
+$all(".window[data-app='"+appId+"']").forEach(function(win){
+closeWindow(win.id);
+});
+registerCustomApps();
+renderLaunchers();
+notify("App removed",app.name+" was uninstalled.");
+}
+function renderAppManager(body){
+body.innerHTML=
+"<div class='app-fill'>"+
+"<div class='row wrap'>"+
+"<h2 class='grow'>App Manager</h2>"+
+"<button class='primary' data-manager='install'>Install HTML app</button>"+
+"<button data-manager='site'>Add website app</button>"+
+"<button data-manager='portable'>Export portable OS</button>"+
+"<input class='manager-html hidden' type='file' accept='.html,.htm'>"+
+"</div>"+
+"<p class='muted'>Add a website URL or HTML file, then customize its name, icon, desktop location, and whether it opens inside the OS or in a new about:blank tab.</p>"+
+"<div class='file-list grow manager-list'></div>"+
+"</div>";
+function draw(){
+var list=$(".manager-list",body);
+list.innerHTML=Object.keys(apps).map(function(appId){
+  var app=appDetails(appId);
+  var customization=appCustomizations[appId] || {};
+  var position=desktopPositions[appId] ||
+    defaultPosition(Object.keys(apps).indexOf(appId));
+
+  var selectedMode=customization.openMode || "";
+
+  return (
+    "<div class='card' data-manager-row='"+escapeHTML(appId)+"'>"+
+      "<div class='row wrap'>"+
+        "<div class='manager-preview'>"+iconMarkup(app.icon)+"</div>"+
+        "<div class='grow'>"+
+          "<strong>"+escapeHTML(app.name)+"</strong>"+
+          "<div class='small muted'>"+
+            (app.custom ? "Installed HTML app" : "Preinstalled app")+
+            " • Opens "+
+            (app.openMode==="blank"
+              ? "in about:blank"
+              : "inside CodeCanvas OS")+
+          "</div>"+
+        "</div>"+
+        "<button data-manager-open='"+escapeHTML(appId)+"'>Open</button>"+
+        (app.custom
+          ? "<button class='danger' data-manager-remove='"+escapeHTML(appId)+"'>Uninstall</button>"
+          : "")+
+      "</div>"+
+
+      "<div class='grid three' style='margin-top:10px'>"+
+        "<label>Name"+
+          "<input data-manager-name='"+escapeHTML(appId)+"' value='"+escapeHTML(app.name)+"'>"+
+        "</label>"+
+
+        "<label>Icon text or image URL"+
+          "<input data-manager-icon='"+escapeHTML(appId)+"' value='"+escapeHTML(app.icon)+"'>"+
+        "</label>"+
+
+        "<label>Open behavior"+
+          "<select data-manager-open-mode='"+escapeHTML(appId)+"'>"+
+            "<option value='' "+(selectedMode==="" ? "selected" : "")+">Use system default</option>"+
+            "<option value='window' "+(selectedMode==="window" ? "selected" : "")+">Inside CodeCanvas OS</option>"+
+            "<option value='blank' "+(selectedMode==="blank" ? "selected" : "")+">New about:blank tab</option>"+
+          "</select>"+
+        "</label>"+
+
+        "<label>Desktop X position"+
+          "<input type='number' min='0' data-manager-x='"+escapeHTML(appId)+"' value='"+Number(position.x || 0)+"'>"+
+        "</label>"+
+
+        "<label>Desktop Y position"+
+          "<input type='number' min='0' data-manager-y='"+escapeHTML(appId)+"' value='"+Number(position.y || 0)+"'>"+
+        "</label>"+
+
+        "<label>Default window width"+
+          "<input type='number' readonly value='"+Number(app.width || 650)+"'>"+
+        "</label>"+
+      "</div>"+
+
+      "<div class='row wrap' style='margin-top:9px'>"+
+        "<label class='grow'>"+
+          "<input type='checkbox' style='width:auto' data-manager-show='"+escapeHTML(appId)+"' "+
+            (customization.showOnDesktop===false ? "" : "checked")+
+          "> Show on desktop"+
+        "</label>"+
+
+        "<input class='hidden' type='file' accept='image/*' data-manager-image='"+escapeHTML(appId)+"'>"+
+        "<button data-manager-upload='"+escapeHTML(appId)+"'>Choose main image</button>"+
+        "<button class='primary' data-manager-save='"+escapeHTML(appId)+"'>Save changes</button>"+
+        "<button data-manager-reset='"+escapeHTML(appId)+"'>Reset</button>"+
+      "</div>"+
+    "</div>"
+  );
+}).join("");
+
+$all("[data-manager-open]",body).forEach(function(button){
+  button.onclick=function(){
+    launchApp(button.getAttribute("data-manager-open"));
+  };
+});
+
+$all("[data-manager-remove]",body).forEach(function(button){
+  button.onclick=function(){
+    removeCustomApp(button.getAttribute("data-manager-remove"));
+    draw();
+  };
+});
+
+$all("[data-manager-upload]",body).forEach(function(button){
+  button.onclick=function(){
+    var appId=button.getAttribute("data-manager-upload");
+    $("[data-manager-image='"+appId+"']",body).click();
+  };
+});
+
+$all("[data-manager-image]",body).forEach(function(input){
+  input.onchange=function(event){
+    var file=event.target.files[0];
+    if(!file) return;
+
+    var appId=input.getAttribute("data-manager-image");
+
+    readFileAsDataURL(file,function(dataURL){
+      $("[data-manager-icon='"+appId+"']",body).value=dataURL;
+      notify("Image selected","Save changes to apply it.");
+    });
+  };
+});
+
+$all("[data-manager-save]",body).forEach(function(button){
+  button.onclick=function(){
+    var appId=button.getAttribute("data-manager-save");
+    var original=apps[appId];
+
+    if(!original) return;
+
+    var name=$("[data-manager-name='"+appId+"']",body).value.trim();
+    var icon=$("[data-manager-icon='"+appId+"']",body).value.trim();
+    var openMode=
+      $("[data-manager-open-mode='"+appId+"']",body).value;
+    var x=Number($("[data-manager-x='"+appId+"']",body).value);
+    var y=Number($("[data-manager-y='"+appId+"']",body).value);
+    var show=$("[data-manager-show='"+appId+"']",body).checked;
+
+    appCustomizations[appId]={
+      name:name || original.name,
+      icon:icon || original.icon,
+      showOnDesktop:show,
+      openMode:openMode
+    };
+
+    setAppPosition(appId,x,y);
+    saveData("appCustomizations",appCustomizations);
+
+    if(original.custom){
+      var savedApp=customApps.find(function(item){
+        return item.id===appId;
+      });
+
+      if(savedApp){
+        savedApp.name=name || savedApp.name;
+        savedApp.icon=icon || savedApp.icon;
+        saveData("customApps",customApps);
+      }
+    }
+
+    registerCustomApps();
+    renderLaunchers();
+    renderTaskbar();
+    draw();
+
+    notify(
+      "App updated",
+      (name || original.name)+" was customized."
+    );
+  };
+});
+
+$all("[data-manager-reset]",body).forEach(function(button){
+  button.onclick=function(){
+    var appId=button.getAttribute("data-manager-reset");
+
+    delete appCustomizations[appId];
+    delete desktopPositions[appId];
+
+    saveData("appCustomizations",appCustomizations);
+    saveData("desktopPositions",desktopPositions);
+
+    registerCustomApps();
+    renderLaunchers();
+    renderTaskbar();
+    draw();
+
+    notify(
+      "App reset",
+      "Default name, icon, opening behavior, and location restored."
+    );
+  };
+});
+
+}
+$("[data-manager='install']",body).onclick=function(){
+$(".manager-html",body).click();
+};
+$("[data-manager='site']",body).onclick=function(){
+  var url=prompt("Website URL","https://example.com");
+  if(!url) return;
+
+  url=normalizeAppURL(url);
+  var defaultName=url.replace(/^https?:\/\//i,"").split("/")[0];
+  var name=prompt("Application name",defaultName) || defaultName;
+  var icon=prompt("Icon text or image URL","◎") || "◎";
+
+  installURLApp(name, url, icon);
+  draw();
+};
+$(".manager-html",body).onchange=function(event){
+var file=event.target.files[0];
+if(!file) return;
+readFileAsText(file,function(html){
+  var defaultName=file.name.replace(/\.html?$/i,"");
+  var name=prompt("Application name",defaultName);
+
+  if(!name) return;
+
+  installCustomApp(name,"◫",html);
+  draw();
+});
+
+event.target.value="";
+
+};
+$("[data-manager='portable']",body).onclick=exportPortableOS;
+draw();
+}
+function renderTerminal(body){
+body.innerHTML=
+"<div class='app-fill'>"+
+"<div class='terminal grow'>CodeCanvas OS Terminal\nType help for commands.\n\n</div>"+
+"<input class='terminal-input' placeholder='Enter command…'>"+
+"</div>";
+var output=$(".terminal",body);
+var input=$(".terminal-input",body);
+function print(text){
+output.textContent+=text+"\n";
+output.scrollTop=output.scrollHeight;
+}
+input.onkeydown=function(event){
+if(event.key!=="Enter") return;
+var raw=input.value.trim();
+var parts=raw.split(/\s+/);
+var command=(parts.shift() || "").toLowerCase();
+var argument=parts.join(" ");
+
+print("> "+raw);
+input.value="";
+
+if(command==="help"){
+  print("help, apps, open, openblank, file, date, clean, desktop, export, whoami");
+}else if(command==="apps"){
+  print(Object.keys(apps).join(", "));
+}else if(command==="open"){
+  if(apps[argument]){
+    launchApp(argument);
+  }else{
+    print("App not found.");
+  }
+}else if(command==="openblank"){
+  if(apps[argument]){
+    openAppInBlank(argument);
+  }else{
+    print("App not found.");
+  }
+}else if(command==="files"){
+  print(Object.keys(files).join(", "));
+}else if(command==="cat"){
+  print(
+    Object.prototype.hasOwnProperty.call(files,argument)
+      ? files[argument]
+      : "File not found."
+  );
+}else if(command==="date"){
+  print(new Date().toString());
+}else if(command==="clear"){
+  output.textContent="";
+}else if(command==="echo"){
+  print(argument);
+}else if(command==="desktop"){
+  switchDesktop(
+    Math.max(0,Math.min(2,(Number(argument) || 1)-1))
+  );
+}else if(command==="export"){
+  exportPortableOS();
+  print("Portable save export started.");
+}else if(command==="whoami"){
+  print("CodeCanvas OS local user");
+}else if(command){
+  print("Unknown command: "+command);
+}
+
+};
+}
+function renderNotepad(body){
+body.innerHTML=
+"<div class='app-fill'>"+
+"<div class='row'>"+
+"<select class='note-picker grow'></select>"+
+"<button data-note='new'>New</button>"+
+"<button data-note='save'>Save</button>"+
+"<button data-note='export'>Export</button>"+
+"</div>"+
+"<textarea class='note-editor grow'></textarea>"+
+"<span class='note-count muted'></span>"+
+"</div>";
+var picker=$(".note-picker",body);
+var editor=$(".note-editor",body);
+var count=$(".note-count",body);
+function updateCount(){
+var words=editor.value.trim()
+? editor.value.trim().split(/\s+/).length
+: 0;
+count.textContent=
+  editor.value.length+" characters • "+words+" words";
+
+}
+function loadCurrent(){
+var note=notes.find(function(item){
+return item.id===picker.value;
+}) || notes[0];
+if(!note) return;
+
+picker.value=note.id;
+editor.value=note.text;
+updateCount();
+
+}
+function refresh(){
+picker.innerHTML=notes.map(function(note){
+return (
+"<option value='"+escapeHTML(note.id)+"'>"+
+escapeHTML(note.name)+
+"</option>"
+);
+}).join("");
+loadCurrent();
+
+}
+picker.onchange=loadCurrent;
+editor.oninput=updateCount;
+$("[data-note='new']",body).onclick=function(){
+var note={
+id:makeId("note"),
+name:"Untitled "+(notes.length+1),
+text:""
+};
+notes.push(note);
+saveData("notes",notes);
+refresh();
+
+picker.value=note.id;
+loadCurrent();
+
+};
+$("[data-note='save']",body).onclick=function(){
+var note=notes.find(function(item){
+return item.id===picker.value;
+});
+if(!note) return;
+
+note.text=editor.value;
+note.name=prompt("Note name",note.name) || note.name;
+
+saveData("notes",notes);
+refresh();
+
+notify("Notepad","Note saved.");
+
+};
+$("[data-note='export']",body).onclick=function(){
+var note=notes.find(function(item){
+return item.id===picker.value;
+});
+download(
+  (note ? note.name : "note")+".txt",
+  editor.value,
+  "text/plain"
+);
+
+};
+refresh();
+}
+function renderFileEditor(body,data){
+var requestedName=data && data.file;
+var selectedName=
+  requestedName && Object.prototype.hasOwnProperty.call(files,requestedName)
+    ? requestedName
+    : Object.keys(files)[0] || "";
+
+body.innerHTML=
+  "<div class='app-fill'>"+
+    "<div class='row wrap'>"+
+      "<select class='editor-file grow'></select>"+
+      "<button data-editor='new'>New file</button>"+
+      "<button class='primary' data-editor='save'>Save</button>"+
+      "<button data-editor='export'>Export</button>"+
+      "<input class='editor-name' placeholder='File name'>"+
+    "</div>"+
+    "<textarea class='editor-content grow' spellcheck='false' " +
+      "placeholder='Select a file or create a new one…'></textarea>"+
+    "<span class='editor-status muted'></span>"+
+  "</div>";
+
+var picker=$(".editor-file",body);
+var nameInput=$(".editor-name",body);
+var content=$(".editor-content",body);
+var status=$(".editor-status",body);
+
+function setStatus(message){
+  status.textContent=message;
+}
+
+function refreshPicker(){
+  picker.innerHTML=Object.keys(files).map(function(name){
+    return "<option value='"+escapeHTML(name)+"'>"+
+      escapeHTML(name)+"</option>";
+  }).join("");
+  picker.value=selectedName;
+}
+
+function loadSelected(){
+  selectedName=picker.value;
+  nameInput.value=selectedName;
+  content.value=Object.prototype.hasOwnProperty.call(files,selectedName)
+    ? files[selectedName]
+    : "";
+  setStatus(selectedName ? "Loaded "+selectedName : "No file selected.");
+}
+
+function saveCurrent(){
+  var name=nameInput.value.trim();
+  if(!name){
+    setStatus("Enter a file name before saving.");
+    nameInput.focus();
+    return;
+  }
+
+  if(name!==selectedName && Object.prototype.hasOwnProperty.call(files,name)){
+    if(!confirm("Replace the existing file "+name+"?")) return;
+  }
+
+  if(selectedName && name!==selectedName){
+    delete files[selectedName];
+  }
+
+  files[name]=content.value;
+  selectedName=name;
+  saveData("files",files);
+  refreshPicker();
+  picker.value=selectedName;
+  setStatus("Saved "+name+" at "+new Date().toLocaleTimeString()+".");
+  updateClock();
+}
+
+picker.onchange=loadSelected;
+$('[data-editor="new"]',body).onclick=function(){
+  selectedName="Untitled.html";
+  nameInput.value=selectedName;
+  content.value="";
+  refreshPicker();
+  picker.value="";
+  setStatus("New file ready. Save it to add it to Virtual files.");
+  nameInput.focus();
+};
+$('[data-editor="save"]',body).onclick=saveCurrent;
+$('[data-editor="export"]',body).onclick=function(){
+  var name=nameInput.value.trim() || selectedName || "untitled.txt";
+  download(name,content.value,"text/plain");
+  setStatus("Export started for "+name+".");
+};
+content.onkeydown=function(event){
+  if((event.ctrlKey || event.metaKey) && event.key.toLowerCase()==="s"){
+    event.preventDefault();
+    saveCurrent();
+  }
+};
+
+refreshPicker();
+if(selectedName){
+  loadSelected();
+}else{
+  nameInput.value="Untitled.html";
+  setStatus("Create your first file.");
+}
+}
+function renderFiles(body){
+function draw(){
+var names=Object.keys(files);
+body.innerHTML=
+  "<div class='app-fill'>"+
+    "<div class='row'>"+
+      "<h3 class='grow'>Virtual files</h3>"+
+      "<button data-file='new'>New</button>"+
+      "<button data-file='import'>Import</button>"+
+      "<input class='file-import hidden' type='file'>"+
+    "</div>"+
+
+    "<div class='file-list grow'>"+
+      (names.length
+        ? names.map(function(name){
+            return (
+              "<div class='file-row'>"+
+                "<span>"+escapeHTML(name)+"</span>"+
+                                "<div class='row wrap'>"+
+                "<button data-file-edit='"+escapeHTML(name)+"'>Edit</button>"+
+                "<button data-file-editor='"+escapeHTML(name)+"'>Open in editor</button>"+
+                "<button data-file-run='"+escapeHTML(name)+"'>Run</button>"+
+                  "<button data-file-run-blank='"+escapeHTML(name)+"'>Run in tab</button>"+
+                  "<button data-file-install='"+escapeHTML(name)+"'>Install</button>"+
+                  "<button data-file-export='"+escapeHTML(name)+"'>Export</button>"+
+                  "<button data-file-delete='"+escapeHTML(name)+"'>Delete</button>"+
+                "</div>"+
+              "</div>"
+            );
+          }).join("")
+        : "<p class='muted'>No files.</p>")+
+    "</div>"+
+  "</div>";
+
+$("[data-file='new']",body).onclick=function(){
+  var name=prompt("File name","Untitled.html");
+  if(!name) return;
+
+  files[name]="";
+  saveData("files",files);
+  draw();
+};
+
+$("[data-file='import']",body).onclick=function(){
+  $(".file-import",body).click();
+};
+
+$(".file-import",body).onchange=function(event){
+  var file=event.target.files[0];
+  if(!file) return;
+
+  readFileAsText(file,function(text){
+    files[file.name]=text;
+    saveData("files",files);
+    draw();
+  });
+
+  event.target.value="";
+};
+
+$all("[data-file-edit]",body).forEach(function(button){
+  button.onclick=function(){
+    var name=button.getAttribute("data-file-edit");
+    var updated=prompt("Edit file contents",files[name]);
+
+    if(updated!==null){
+      files[name]=updated;
+      saveData("files",files);
+    }
+  };
+});
+
+$all("[data-file-editor]",body).forEach(function(button){
+  button.onclick=function(){
+    launchApp("editor",{file:button.getAttribute("data-file-editor")});
+  };
+});
+
+$all("[data-file-run]",body).forEach(function(button){
+  button.onclick=function(){
+    var name=button.getAttribute("data-file-run");
+
+    if(!/\.html?$/i.test(name)){
+      notify("File Runner","Only HTML files can run.");
+      return;
+    }
+
+    openTemporaryHTML(name,files[name],"window");
+  };
+});
+
+$all("[data-file-run-blank]",body).forEach(function(button){
+  button.onclick=function(){
+    var name=button.getAttribute("data-file-run-blank");
+
+    if(!/\.html?$/i.test(name)){
+      notify("File Runner","Only HTML files can run.");
+      return;
+    }
+
+    openTemporaryHTML(name,files[name],"blank");
+  };
+});
+
+$all("[data-file-install]",body).forEach(function(button){
+  button.onclick=function(){
+    var name=button.getAttribute("data-file-install");
+
+    if(!/\.html?$/i.test(name)){
+      notify("App Manager","Only HTML files can be installed.");
+      return;
+    }
+
+    var appName=prompt(
+      "Application name",
+      name.replace(/\.html?$/i,"")
+    );
+
+    if(appName){
+      installCustomApp(appName,"◫",files[name]);
+    }
+  };
+});
+
+$all("[data-file-export]",body).forEach(function(button){
+  button.onclick=function(){
+    var name=button.getAttribute("data-file-export");
+    download(name,files[name],"text/plain");
+  };
+});
+
+$all("[data-file-delete]",body).forEach(function(button){
+  button.onclick=function(){
+    var name=button.getAttribute("data-file-delete");
+
+    recycleBin.push({
+      name:name,
+      text:files[name],
+      deleted:new Date().toISOString()
+    });
+
+    delete files[name];
+
+    saveData("files",files);
+    saveData("recycleBin",recycleBin);
+
+    draw();
+  };
+});
+
+}
+draw();
+}
+function openTemporaryHTML(name,html,mode){
+if(mode==="blank"){
+var previewWindow=window.open("about:blank","_blank");
+if(!previewWindow){
+  notify("Pop-up blocked","Allow pop-ups to run this file.");
+  return;
+}
+
+try{
+  previewWindow.document.open();
+  previewWindow.document.write(html);
+  previewWindow.document.close();
+}catch(error){
+  previewWindow.close();
+  notify("Preview failed",error.message || "The file could not be opened.");
+}
+
+return;
+
+}
+var temporaryId=makeId("preview");
+apps[temporaryId]={
+name:name,
+icon:"◫",
+width:850,
+height:600,
+custom:true,
+render:function(body){
+renderImportedApp(body,{html:html});
+}
+};
+openApp(temporaryId);
+setTimeout(function(){
+delete apps[temporaryId];
+},0);
+}
+function renderCalculator(body){
+var keys=[
+"C","(",")","÷",
+"7","8","9","×",
+"4","5","6","-",
+"1","2","3","+",
+"0",".","⌫","="
+];
+body.innerHTML=
+"<div class='app-fill'>"+
+"<input class='calc-display' readonly value='0'>"+
+"<div class='grid calc-grid grow'>"+
+keys.map(function(key){
+return (
+"<button data-calc='"+escapeHTML(key)+"'>"+
+key+
+"</button>"
+);
+}).join("")+
+"</div>"+
+"</div>";
+var display=$(".calc-display",body);
+var expression="";
+$all("[data-calc]",body).forEach(function(button){
+button.onclick=function(){
+var key=button.getAttribute("data-calc");
+  if(key==="C"){
+    expression="";
+  }else if(key==="⌫"){
+    expression=expression.slice(0,-1);
+  }else if(key==="="){
+    try{
+      var safe=expression
+        .replace(/×/g,"*")
+        .replace(/÷/g,"/");
+
+      if(!/^[0-9+\-*/().\s]+$/.test(safe)){
+        throw new Error("Invalid expression");
+      }
+
+      expression=String(
+        Function('"use strict";return ('+safe+')')()
+      );
+    }catch(error){
+      expression="Error";
+    }
+  }else{
+    if(expression==="Error"){
+      expression="";
+    }
+
+    expression+=key;
+  }
+
+  display.value=expression || "0";
+};
+
+});
+}
+function renderPaint(body){
+body.innerHTML=
+"<div class='app-fill'>"+
+"<div class='row wrap'>"+
+"<input class='paint-color' type='color' value='#101820' style='width:52px'>"+
+"<input class='paint-size' type='range' min='1' max='40' value='5'>"+
+"<button data-paint='clear'>Clear</button>"+
+"<button data-paint='save'>Save PNG</button>"+
+"</div>"+
+"<div class='canvas-wrap'>"+
+"<canvas class='paint' width='900' height='600'></canvas>"+
+"</div>"+
+"</div>";
+var canvas=$("canvas",body);
+var context=canvas.getContext("2d");
+var drawing=false;
+context.fillStyle="#fff";
+context.fillRect(0,0,canvas.width,canvas.height);
+function point(event){
+var rect=canvas.getBoundingClientRect();
+return {
+  x:(event.clientX-rect.left)*canvas.width/rect.width,
+  y:(event.clientY-rect.top)*canvas.height/rect.height
+};
+
+}
+canvas.onpointerdown=function(event){
+var location=point(event);
+drawing=true;
+context.beginPath();
+context.moveTo(location.x,location.y);
+
+canvas.setPointerCapture(event.pointerId);
+
+};
+canvas.onpointermove=function(event){
+if(!drawing) return;
+var location=point(event);
+
+context.lineWidth=$(".paint-size",body).value;
+context.lineCap="round";
+context.strokeStyle=$(".paint-color",body).value;
+context.lineTo(location.x,location.y);
+context.stroke();
+
+};
+canvas.onpointerup=function(){
+drawing=false;
+};
+canvas.onpointercancel=function(){
+drawing=false;
+};
+$("[data-paint='clear']",body).onclick=function(){
+context.fillStyle="#fff";
+context.fillRect(0,0,canvas.width,canvas.height);
+};
+$("[data-paint='save']",body).onclick=function(){
+var link=document.createElement("a");
+link.href=canvas.toDataURL("image/png");
+link.download="codecanvas-drawing.png";
+link.click();
+
+};
+}
+function renderContacts(body){
+function draw(){
+body.innerHTML=
+"<div class='app-fill'>"+
+"<div class='row'>"+
+"<h3 class='grow'>Contacts</h3>"+
+"<button class='primary' data-contact='add'>Add contact</button>"+
+"</div>"+
+    "<div class='file-list grow'>"+
+      (contacts.length
+        ? contacts.map(function(contact,index){
+            return (
+              "<div class='file-row'>"+
+                "<span>"+
+                  "<strong>"+escapeHTML(contact.name)+"</strong><br>"+
+                  "<span class='muted'>"+escapeHTML(contact.email)+"</span>"+
+                "</span>"+
+                "<button data-contact-delete='"+index+"'>Delete</button>"+
+              "</div>"
+            );
+          }).join("")
+        : "<p class='muted'>No contacts yet.</p>")+
+    "</div>"+
+  "</div>";
+
+$("[data-contact='add']",body).onclick=function(){
+  var name=prompt("Contact name");
+  if(!name) return;
+
+  var email=prompt("Email address","") || "";
+
+  contacts.push({
+    name:name,
+    email:email
+  });
+
+  saveData("contacts",contacts);
+  draw();
+};
+
+$all("[data-contact-delete]",body).forEach(function(button){
+  button.onclick=function(){
+    contacts.splice(
+      Number(button.getAttribute("data-contact-delete")),
+      1
+    );
+
+    saveData("contacts",contacts);
+    draw();
+  };
+});
+
+}
+draw();
+}
+function collectState(){
+return {
+version:6,
+exported:new Date().toISOString(),
+settings:settings,
+files:files,
+notes:notes,
+bookmarks:bookmarks,
+contacts:contacts,
+recycleBin:recycleBin,
+customApps:customApps,
+appCustomizations:appCustomizations,
+desktopPositions:desktopPositions,
+notifications:notificationHistory,
+stickyNote:$("#stickyNote").value,
+assistantHistory:loadData("assistantHistory",[]),
+embedderMode:loadData("embedderMode","url"),
+embedderLastURL:loadData("embedderLastURL","about:blank"),
+embedderLastHTML:loadData("embedderLastHTML","")
+};
+}
+function exportStateJSON(){
+download(
+"codecanvas-os-save.json",
+JSON.stringify(collectState(),null,2),
+"application/json"
+);
+}
+function exportPortableOS(){
+var state={
+exportId:
+Date.now().toString(36)+"_"+
+Math.random().toString(36).slice(2),
+data:collectState()
+};
+var clone=document.documentElement.cloneNode(true);
+clone.querySelectorAll(".window").forEach(function(win){
+win.remove();
+});
+var startMenu=clone.querySelector("#startMenu");
+var contextMenu=clone.querySelector("#contextMenu");
+var notifications=clone.querySelector("#notifications");
+var lockScreen=clone.querySelector("#lockScreen");
+var shutdownScreen=clone.querySelector("#shutdownScreen");
+if(startMenu){
+startMenu.classList.add("hidden");
+}
+if(contextMenu){
+contextMenu.classList.add("hidden");
+}
+if(notifications){
+notifications.innerHTML="";
+}
+if(lockScreen){
+lockScreen.style.display="none";
+}
+if(shutdownScreen){
+shutdownScreen.style.display="none";
+}
+var embedded=clone.querySelector("#codecanvasEmbeddedState");
+embedded.textContent=JSON.stringify(state)
+.replace(/</g,"\u003c")
+.replace(/-->/g,"-->");
+var source=
+"<!DOCTYPE html>\n"+
+clone.outerHTML;
+download(
+"codecanvas-os-portable-save.html",
+source,
+"text/html"
+);
+notify(
+"Portable OS exported",
+"The downloaded HTML includes apps, files, settings, opening behaviors, images, and desktop locations."
+);
+}
+function importStateObject(state){
+if(!state || typeof state!=="object"){
+throw new Error("Invalid state");
+}
+Object.keys(state).forEach(function(key){
+if(key==="version" || key==="exported") return;
+saveData(key,state[key]);
+});
+notify("Save imported","Restarting CodeCanvas OS.");
+setTimeout(function(){
+location.reload();
+},700);
+}
+function renderSettings(body){
+var startupOptions=
+"<option value=''>Do not open an app</option>"+
+Object.keys(apps).map(function(appId){
+var app=appDetails(appId);
+  return (
+    "<option value='"+escapeHTML(appId)+"'>"+
+      escapeHTML(app.name)+
+    "</option>"
+  );
+}).join("");
+
+body.innerHTML=
+"<div class='app-fill'>"+
+"<div class='row wrap'>"+
+"<h2 class='grow' style='margin:0'>Settings</h2>"+
+"<button data-settings='defaults'>Restore setting defaults</button>"+
+"</div>"+
+  "<div class='grid two grow'>"+
+    "<div class='card'>"+
+      "<h3>Appearance</h3>"+
+
+      "<label>Theme"+
+        "<select class='setting-theme'>"+
+          "<option value='dark'>Dark</option>"+
+          "<option value='light'>Light</option>"+
+        "</select>"+
+      "</label><br>"+
+
+      "<label>Accent color"+
+        "<input class='setting-accent' type='color'>"+
+      "</label><br>"+
+
+      "<label>Interface text size "+
+        "<span class='setting-value setting-font-value'></span>"+
+        "<input class='setting-font' type='range' min='12' max='18' step='1'>"+
+      "</label><br>"+
+
+      "<label>Window opacity "+
+        "<span class='setting-value setting-opacity-value'></span>"+
+        "<input class='setting-opacity' type='range' min='55' max='100' step='1'>"+
+      "</label><br>"+
+
+      "<label>"+
+        "<input class='setting-rounded' type='checkbox' style='width:auto'> Rounded interface corners"+
+      "</label><br><br>"+
+
+      "<label>"+
+        "<input class='setting-blur' type='checkbox' style='width:auto'> Glass blur effects"+
+      "</label>"+
+
+      "<p style='margin-top:14px'>Wallpaper</p>"+
+      "<div class='grid two wallpaper-options'></div>"+
+    "</div>"+
+
+    "<div class='card'>"+
+      "<h3>Taskbar and clock</h3>"+
+
+      "<label>Taskbar size"+
+        "<select class='setting-taskbar'>"+
+          "<option value='compact'>Compact</option>"+
+          "<option value='normal'>Normal</option>"+
+          "<option value='large'>Large</option>"+
+        "</select>"+
+      "</label><br>"+
+
+      "<label>"+
+        "<input class='setting-clock24' type='checkbox' style='width:auto'> Use 24-hour time"+
+      "</label><br><br>"+
+
+      "<label>"+
+        "<input class='setting-seconds' type='checkbox' style='width:auto'> Show seconds"+
+      "</label><br><br>"+
+
+      "<label>"+
+        "<input class='setting-widgets' type='checkbox' style='width:auto'> Show desktop widgets"+
+      "</label>"+
+    "</div>"+
+
+    "<div class='card'>"+
+      "<h3>App behavior</h3>"+
+
+      "<label>Default app opening behavior"+
+        "<select class='setting-open-mode'>"+
+          "<option value='window'>Open inside CodeCanvas OS</option>"+
+          "<option value='blank'>Open in a new about:blank tab</option>"+
+        "</select>"+
+      "</label>"+
+
+      "<p class='small muted'>Individual app choices in App Manager override this default.</p>"+
+
+      "<label>App to open at startup"+
+        "<select class='setting-startup-app'>"+
+          startupOptions+
+        "</select>"+
+      "</label><br>"+
+
+      "<label>"+
+        "<input class='setting-startup-notification' type='checkbox' style='width:auto'> Show welcome notification at startup"+
+      "</label><br><br>"+
+
+      "<button class='primary' data-settings='apps'>Open App Manager</button>"+
+    "</div>"+
+
+    "<div class='card'>"+
+      "<h3>Accessibility</h3>"+
+
+      "<label>"+
+        "<input class='setting-contrast' type='checkbox' style='width:auto'> High contrast"+
+      "</label><br><br>"+
+
+      "<label>"+
+        "<input class='setting-motion' type='checkbox' style='width:auto'> Reduce motion"+
+      "</label>"+
+    "</div>"+
+
+    "<div class='card'>"+
+      "<h3>Backup and portable saves</h3>"+
+
+      "<div class='row wrap'>"+
+        "<button data-settings='json'>Export JSON save</button>"+
+        "<button data-settings='portable'>Export portable HTML</button>"+
+        "<button data-settings='import'>Import JSON save</button>"+
+      "</div>"+
+
+      "<p class='small muted'>Portable HTML includes installed apps, files, themes, opening preferences, images, and layout.</p>"+
+    "</div>"+
+
+    "<div class='card'>"+
+      "<h3>System</h3>"+
+
+      "<p class='small muted'>"+
+        customApps.length+" custom apps installed • "+
+        Object.keys(files).length+" files stored"+
+      "</p>"+
+
+      "<button class='danger' data-settings='reset'>Reset CodeCanvas OS</button>"+
+    "</div>"+
+  "</div>"+
+"</div>";
+
+var theme=$(".setting-theme",body);
+var accent=$(".setting-accent",body);
+var fontSize=$(".setting-font",body);
+var fontValue=$(".setting-font-value",body);
+var opacity=$(".setting-opacity",body);
+var opacityValue=$(".setting-opacity-value",body);
+var rounded=$(".setting-rounded",body);
+var blur=$(".setting-blur",body);
+var taskbar=$(".setting-taskbar",body);
+var clock24=$(".setting-clock24",body);
+var seconds=$(".setting-seconds",body);
+var widgets=$(".setting-widgets",body);
+var openMode=$(".setting-open-mode",body);
+var startupApp=$(".setting-startup-app",body);
+var startupNotification=$(".setting-startup-notification",body);
+var contrast=$(".setting-contrast",body);
+var motion=$(".setting-motion",body);
+theme.value=settings.theme;
+accent.value=settings.accent;
+fontSize.value=settings.fontSize;
+opacity.value=settings.windowOpacity;
+rounded.checked=settings.roundedCorners;
+blur.checked=settings.blurEffects;
+taskbar.value=settings.taskbarSize;
+clock24.checked=settings.clock24;
+seconds.checked=settings.showSeconds;
+widgets.checked=settings.widgets;
+openMode.value=settings.defaultOpenMode;
+startupApp.value=apps[settings.startupApp] ? settings.startupApp : "";
+startupNotification.checked=settings.startupNotification;
+contrast.checked=settings.contrast;
+motion.checked=settings.reducedMotion;
+function updateLabels(){
+fontValue.textContent=fontSize.value+"px";
+opacityValue.textContent=opacity.value+"%";
+}
+updateLabels();
+wallpapers.forEach(function(wallpaper,index){
+var option=document.createElement("div");
+option.className=
+  "wallpaper-option "+
+  (settings.wallpaper===index ? "selected" : "");
+
+option.style.background=wallpaper;
+option.title="Wallpaper "+(index+1);
+
+option.onclick=function(){
+  settings.wallpaper=index;
+  applySettings();
+
+  $all(".wallpaper-option",body).forEach(function(item){
+    item.classList.remove("selected");
+  });
+
+  option.classList.add("selected");
+};
+
+$(".wallpaper-options",body).appendChild(option);
+
+});
+function sync(){
+settings.theme=theme.value;
+settings.accent=accent.value;
+settings.fontSize=Number(fontSize.value);
+settings.windowOpacity=Number(opacity.value);
+settings.roundedCorners=rounded.checked;
+settings.blurEffects=blur.checked;
+settings.taskbarSize=taskbar.value;
+settings.clock24=clock24.checked;
+settings.showSeconds=seconds.checked;
+settings.widgets=widgets.checked;
+settings.defaultOpenMode=openMode.value;
+settings.startupApp=startupApp.value;
+settings.startupNotification=startupNotification.checked;
+settings.contrast=contrast.checked;
+settings.reducedMotion=motion.checked;
+updateLabels();
+applySettings();
+updateClock();
+
+$all(".window").forEach(function(win){
+  var maximumTop=
+    window.innerHeight-getTaskbarHeight()-win.offsetHeight;
+
+  if(win.offsetTop>maximumTop){
+    win.style.top=Math.max(0,maximumTop)+"px";
+  }
+});
+
+}
+[
+theme,
+accent,
+fontSize,
+opacity,
+rounded,
+blur,
+taskbar,
+clock24,
+seconds,
+widgets,
+openMode,
+startupApp,
+startupNotification,
+contrast,
+motion
+].forEach(function(control){
+control.oninput=sync;
+control.onchange=sync;
+});
+$("[data-settings='apps']",body).onclick=function(){
+openApp("appmanager");
+};
+$("[data-settings='json']",body).onclick=exportStateJSON;
+$("[data-settings='portable']",body).onclick=exportPortableOS;
+$("[data-settings='import']",body).onclick=function(){
+$("#stateImporter").click();
+};
+$("[data-settings='defaults']",body).onclick=function(){
+if(!confirm("Restore the default settings?")) return;
+settings=Object.assign({},defaultSettings);
+saveData("settings",settings);
+applySettings();
+renderSettings(body);
+updateClock();
+
+notify("Settings restored","Default settings were restored.");
+
+};
+$("[data-settings='reset']",body).onclick=function(){
+if(confirm("Reset all CodeCanvas OS data?")){
+clearData();
+location.reload();
+}
+};
+}
+function renderAssistant(body){
+var history=loadData("assistantHistory",[]);
+var savedKey=loadData("openrouterApiKey","");
+body.innerHTML=
+"<div class='app-fill'>"+
+"<div class='row'>"+
+"<h3 class='grow'>AI Assistant</h3>"+
+"<button data-assistant='clear'>Clear</button>"+
+"</div>"+
+"<div class='grid two'>"+
+"<label class='small'>OpenRouter API key"+
+"<input class='assistant-key' type='password' placeholder='sk-or-v1-…'>"+
+"</label>"+
+"<label class='small'>Model"+
+"<select class='assistant-model'>"+
+"<option value='openai/gpt-4o-mini'>OpenAI GPT-4o Mini</option>"+
+"<option value='openai/gpt-4o'>OpenAI GPT-4o</option>"+
+"<option value='openai/gpt-4.1'>OpenAI GPT-4.1</option>"+
+"<option value='openai/gpt-4.1-mini'>OpenAI GPT-4.1 Mini</option>"+
+"<option value='openai/gpt-4.1-nano'>OpenAI GPT-4.1 Nano</option>"+
+"<option value='anthropic/claude-3.7-sonnet'>Anthropic Claude 3.7 Sonnet</option>"+
+"<option value='anthropic/claude-3.5-sonnet'>Anthropic Claude 3.5 Sonnet</option>"+
+"<option value='anthropic/claude-3.5-haiku'>Anthropic Claude 3.5 Haiku</option>"+
+"<option value='google/gemini-2.5-pro-preview'>Google Gemini 2.5 Pro</option>"+
+"<option value='google/gemini-2.5-flash-preview'>Google Gemini 2.5 Flash</option>"+
+"<option value='google/gemini-2.0-flash-001'>Google Gemini 2.0 Flash</option>"+
+"<option value='deepseek/deepseek-chat-v3-0324'>DeepSeek V3</option>"+
+"<option value='deepseek/deepseek-r1'>DeepSeek R1</option>"+
+"<option value='meta-llama/llama-4-maverick'>Meta Llama 4 Maverick</option>"+
+"<option value='meta-llama/llama-4-scout'>Meta Llama 4 Scout</option>"+
+"<option value='mistralai/mistral-small-3.1-24b-instruct'>Mistral Small 3.1</option>"+
+"<option value='qwen/qwen3-235b-a22b'>Qwen3 235B</option>"+
+"<option value='x-ai/grok-3-mini-beta'>xAI Grok 3 Mini</option>"+
+"</select>"+
+"</label>"+
+"</div>"+
+"<p class='small muted'>Your key is stored only in this browser. OpenRouter usage may incur charges.</p>"+
+"<div class='output grow assistant-chat'></div>"+
+"<div class='row'>"+
+"<textarea class='assistant-prompt' style='min-height:60px' placeholder='Ask something…'></textarea>"+
+"<button class='primary' data-assistant='send'>Send</button>"+
+"</div>"+
+"</div>";
+var chat=$(".assistant-chat",body);
+var promptBox=$(".assistant-prompt",body);
+var keyBox=$(".assistant-key",body);
+var modelBox=$(".assistant-model",body);
+var sendButton=$("[data-assistant='send']",body);
+keyBox.value=savedKey;
+if(modelBox){
+  modelBox.value="openai/gpt-4o-mini";
+  modelBox.disabled=true;
+}
+
+function loadOpenRouterModels(){
+  return;
+  fetch("https://openrouter.ai/api/v1/models")
+    .then(function(response){
+      if(!response.ok) throw new Error("Could not load models.");
+      return response.json();
+    })
+    .then(function(data){
+      var models=(data.data || []).slice().sort(function(a,b){
+        return String(a.name || a.id).localeCompare(String(b.name || b.id));
+      });
+
+      if(!models.length) return;
+
+      modelBox.innerHTML=models.map(function(model){
+        var label=model.name || model.id;
+        return "<option value='"+escapeHTML(model.id)+"'>"+
+          escapeHTML(label)+" ("+escapeHTML(model.id)+")"+
+        "</option>";
+      }).join("");
+
+      if(!models.some(function(model){return model.id===savedModel;})){
+        var savedOption=document.createElement("option");
+        savedOption.value=savedModel;
+        savedOption.textContent=savedModel+" (saved model)";
+        modelBox.insertBefore(savedOption,modelBox.firstChild);
+      }
+
+      modelBox.value=savedModel;
+    })
+    .catch(function(){
+      // Keep the built-in model options when the catalog request is unavailable.
+    });
+}
+
+loadOpenRouterModels();
+keyBox.onchange=function(){saveData("openrouterApiKey",keyBox.value.trim());};
+// GPT-4o mini is the only supported model.
+function draw(){
+chat.innerHTML=history.length
+? history.map(function(item){
+return (
+"<p><strong>"+escapeHTML(item.role)+":</strong> "+
+escapeHTML(item.text).replace(/\\n/g,"<br>")+
+"</p>"
+);
+}).join("")
+: "<p class='muted'>Add an OpenRouter key above, then ask a question. Local commands such as “list my apps” still work without a key.</p>";
+chat.scrollTop=chat.scrollHeight;
+}
+function localReply(text){
+if(/list.*apps/i.test(text)){
+  return Object.keys(apps).map(function(appId){return appDetails(appId).name;}).join(", ");
+}
+if(/list.*files/i.test(text)) return Object.keys(files).join(", ") || "No files.";
+if(/open.*(embedder|studio)/i.test(text)){launchApp("studio");return "Opening CodeCanvas Embedder.";}
+if(/open.*app manager/i.test(text)){launchApp("appmanager");return "Opening App Manager.";}
+if(/open.*settings/i.test(text)){launchApp("settings");return "Opening Settings.";}
+if(/export.*save/i.test(text)){exportPortableOS();return "Exporting a portable CodeCanvas OS save.";}
+if(/system status/i.test(text)){
+  return Object.keys(files).length+" files, "+customApps.length+" installed custom apps, "+$all(".window").length+" open windows.";
+}
+return "";
+}
+function addMessage(role,text){
+  history.push({role:role,text:text});
+  history=history.slice(-40);
+  saveData("assistantHistory",history);
+  draw();
+}
+function send(){
+var text=promptBox.value.trim();
+if(!text || sendButton.disabled) return;
+promptBox.value="";
+addMessage("You",text);
+var local=localReply(text);
+if(local){addMessage("Assistant",local);return;}
+var apiKey=keyBox.value.trim();
+if(!apiKey){
+  addMessage("Assistant","Add your OpenRouter API key above to ask the real AI.");
+  return;
+}
+saveData("openrouterApiKey",apiKey);
+saveData("openrouterModel",modelBox.value.trim() || "openai/gpt-4o-mini");
+sendButton.disabled=true;
+sendButton.textContent="Thinking…";
+fetch("https://openrouter.ai/api/v1/chat/completions",{
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json",
+    "Authorization":"Bearer "+apiKey,
+    "HTTP-Referer":location.href,
+    "X-Title":"CodeCanvas OS AI Assistant"
+  },
+  body:JSON.stringify({
+    model:"openai/gpt-4o-mini",
+    messages:[
+      {role:"system",content:"You are the helpful AI Assistant inside CodeCanvas OS. Be concise. You cannot directly manipulate the OS unless the user uses its local commands."}
+    ].concat(history.map(function(item){
+      return {
+        role:item.role==="Assistant" ? "assistant" : "user",
+        content:item.text
+      };
+    }))
+  })
+}).then(function(response){
+  return response.json().then(function(data){
+    if(!response.ok) throw new Error(data.error && data.error.message || "OpenRouter request failed (HTTP "+response.status+").");
+    return data;
+  });
+}).then(function(data){
+  var message=data.choices && data.choices[0] && data.choices[0].message;
+  addMessage("Assistant",message && message.content || "The model returned an empty response.");
+}).catch(function(error){
+  addMessage("Assistant","OpenRouter error: "+error.message);
+}).finally(function(){
+  sendButton.disabled=false;
+  sendButton.textContent="Send";
+});
+}
+$('[data-assistant="send"]',body).onclick=send;
+promptBox.onkeydown=function(event){
+if(event.key==="Enter" && !event.shiftKey){event.preventDefault();send();}
+};
+$('[data-assistant="clear"]',body).onclick=function(){history=[];saveData("assistantHistory",history);draw();};
+draw();
+}
+function renderAbout(body){
+body.innerHTML=
+"<div class='app-fill' style='text-align:center'>"+
+"<div style='font-size:65px;color:var(--accent)'>◈</div>"+
+"<h1>CodeCanvas OS</h1>"+
+"<p class='muted'>A self-contained creative browser operating system.</p>"+
+"<p>Embed URLs, edit or import HTML, install HTML files as apps, customize app images and desktop locations, choose whether apps open inside the OS or in about:blank, and export the entire workspace as a portable HTML save.</p>"+
+"<div class='card'>Version 6.0 • External App Launch Edition</div>"+
+"<div class='row wrap' style='justify-content:center'>"+
+"<button class='primary' data-about='embedder'>Open CodeCanvas Embedder</button>"+
+"<button data-about='manager'>Open App Manager</button>"+
+"<button data-about='settings'>Open Settings</button>"+
+"</div>"+
+"</div>";
+$("[data-about='embedder']",body).onclick=function(){
+launchApp("studio");
+};
+$("[data-about='manager']",body).onclick=function(){
+launchApp("appmanager");
+};
+$("[data-about='settings']",body).onclick=function(){
+launchApp("settings");
+};
+}
+$("#stateImporter").onchange=function(event){
+var file=event.target.files[0];
+if(!file) return;
+readFileAsText(file,function(text){
+try{
+importStateObject(JSON.parse(text));
+}catch(error){
+notify(
+"Import failed",
+"The selected file is not a valid save."
+);
+}
+});
+event.target.value="";
+};
+$("#startButton").onclick=function(event){
+event.stopPropagation();
+$("#startMenu").classList.toggle("hidden");
+if(!$("#startMenu").classList.contains("hidden")){
+$("#appSearch").focus();
+}
+};
+$("#desktopButton").onclick=function(){
+switchDesktop((currentDesktop+1)%3);
+};
+$("#lockButton").onclick=function(){
+$("#startMenu").classList.add("hidden");
+$("#lockScreen").style.display="flex";
+};
+$("#unlockButton").onclick=function(){
+$("#lockScreen").style.display="none";
+};
+$("#powerButton").onclick=function(){
+var action=prompt(
+"Type lock, restart, or shutdown",
+"lock"
+);
+if(!action) return;
+action=action.toLowerCase();
+if(action==="lock"){
+$("#lockButton").click();
+}
+if(action==="restart"){
+location.reload();
+}
+if(action==="shutdown"){
+$("#shutdownScreen").style.display="flex";
+}
+};
+$("#powerOnButton").onclick=function(){
+$("#shutdownScreen").style.display="none";
+};
+$("#notificationButton").onclick=function(){
+if(!notificationHistory.length){
+notify("CodeCanvas OS","No saved notifications.");
+}else{
+notify(
+notificationHistory[0].title,
+notificationHistory[0].message
+);
+}
+};
+$("#appSearch").oninput=function(event){
+var query=event.target.value.toLowerCase().trim();
+if(!query){
+$("#searchResults").innerHTML="";
+return;
+}
+var matching=Object.keys(apps).filter(function(appId){
+return (
+appDetails(appId).name.toLowerCase().indexOf(query)!==-1
+);
+});
+$("#searchResults").innerHTML=matching.map(function(appId){
+var app=appDetails(appId);
+return (
+  "<button class='search-result' data-search-app='"+escapeHTML(appId)+"'>"+
+    escapeHTML(app.name)+
+  "</button>"
+);
+
+}).join("");
+$all("[data-search-app]").forEach(function(button){
+button.onclick=function(){
+launchApp(button.getAttribute("data-search-app"));
+};
+});
+};
+document.addEventListener("pointerdown",function(event){
+if(
+!event.target.closest("#startMenu") &&
+!event.target.closest("#startButton")
+){
+$("#startMenu").classList.add("hidden");
+}
+if(!event.target.closest("#contextMenu")){
+$("#contextMenu").classList.add("hidden");
+}
+});
+$("#desktop").addEventListener("contextmenu",function(event){
+if(event.target.closest(".window")) return;
+event.preventDefault();
+var menu=$("#contextMenu");
+menu.style.left=
+Math.min(event.clientX,window.innerWidth-220)+"px";
+menu.style.top=
+Math.min(event.clientY,window.innerHeight-290)+"px";
+menu.innerHTML=
+"<button data-context='manager'>Install or customize apps</button>"+
+"<button data-context='export'>Export portable OS</button>"+
+"<button data-context='settings'>Personalize</button>";
+menu.classList.remove("hidden");
+$("[data-context='studio']",menu).onclick=function(){
+launchApp("studio");
+};
+$("[data-context='studio-blank']",menu).onclick=function(){
+openAppInBlank("studio");
+};
+$("[data-context='manager']",menu).onclick=function(){
+launchApp("appmanager");
+};
+$("[data-context='export']",menu).onclick=exportPortableOS;
+$("[data-context='settings']",menu).onclick=function(){
+launchApp("settings");
+};
+$("[data-context='icons']",menu).onclick=function(){
+desktopPositions={};
+saveData("desktopPositions",desktopPositions);
+renderLaunchers();
+notify(
+  "Desktop layout",
+  "Icon locations were reset."
+);
+
+};
+});
+document.addEventListener("keydown",function(event){
+if(event.ctrlKey && event.code==="Space"){
+event.preventDefault();
+$("#startButton").click();
+}
+if(
+event.altKey &&
+event.key.toLowerCase()==="w" &&
+activeWindow
+){
+event.preventDefault();
+closeWindow(activeWindow.id);
+}
+if(
+event.ctrlKey &&
+event.altKey &&
+event.key==="ArrowRight"
+){
+event.preventDefault();
+switchDesktop((currentDesktop+1)%3);
+}
+if(
+event.ctrlKey &&
+event.altKey &&
+event.key.toLowerCase()==="c"
+){
+event.preventDefault();
+launchApp("studio");
+}
+if(
+event.ctrlKey &&
+event.altKey &&
+event.key.toLowerCase()==="a"
+){
+event.preventDefault();
+launchApp("appmanager");
+}
+if(
+event.ctrlKey &&
+event.altKey &&
+event.key.toLowerCase()==="t"
+){
+event.preventDefault();
+launchApp("terminal");
+}
+if(
+event.ctrlKey &&
+event.altKey &&
+event.key.toLowerCase()==="s"
+){
+event.preventDefault();
+launchApp("settings");
+}
+if(
+event.ctrlKey &&
+event.shiftKey &&
+event.key.toLowerCase()==="e"
+){
+event.preventDefault();
+exportPortableOS();
+}
+});
+window.addEventListener("resize",function(){
+desktopAppIds().forEach(function(appId,index){
+var icon=$("[data-desktop-app='"+appId+"']");
+if(!icon) return;
+var position=getAppPosition(appId,index);
+
+icon.style.left=position.x+"px";
+icon.style.top=position.y+"px";
+
+});
+$all(".window").forEach(function(win){
+if(win.classList.contains("maximized")) return;
+var maximumLeft=Math.max(0,window.innerWidth-win.offsetWidth);
+var maximumTop=Math.max(
+  0,
+  window.innerHeight-getTaskbarHeight()-win.offsetHeight
+);
+
+win.style.left=
+  Math.max(0,Math.min(win.offsetLeft,maximumLeft))+"px";
+
+win.style.top=
+  Math.max(0,Math.min(win.offsetTop,maximumTop))+"px";
+
+});
+});
+$("#stickyNote").value=loadData("stickyNote","");
+$("#stickyNote").oninput=function(event){
+saveData("stickyNote",event.target.value);
+};
+applySettings();
+renderLaunchers();
+updateClock();
+setInterval(updateClock,1000);
+if(settings.startupNotification){
+notify(
+"CodeCanvas OS",
+"CodeCanvas Embedder is installed. Use App Manager to choose whether each app opens inside the OS or in about:blank."
+);
+}
+if(settings.startupApp && apps[settings.startupApp]){
+setTimeout(function(){
+launchApp(settings.startupApp);
+},350);
+}
+})();
+</script>
+</body>
+</html>
